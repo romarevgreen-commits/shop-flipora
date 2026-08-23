@@ -18,7 +18,12 @@
       <a href="#browse">Browse</a>
       <a href="#how-it-works">How it works</a>
     </nav>
-    <button class="button button-small" data-open-sell>Sell an item</button>
+    <div class="header-actions">
+      <button class="text-button" id="signInButton">Sign in</button>
+      <button class="button button-small" id="createAccountButton">Create account</button>
+      <button class="account-button" id="accountButton" hidden><span id="accountInitial">F</span><span id="accountName">Account</span></button>
+      <button class="button button-small" data-open-sell>Sell an item</button>
+    </div>
   </header>
 
   <main id="top">
@@ -82,13 +87,39 @@
       <button class="dialog-close" value="cancel" aria-label="Close">×</button>
       <p class="eyebrow">Create a listing</p><h2>What are you selling?</h2>
       <label>Item name<input name="title" required maxlength="60" placeholder="e.g. Vintage desk lamp"></label>
-      <div class="form-row"><label>Price<input name="price" required min="0" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option></select></label></div>
+      <div class="form-row"><label>Price<input name="price" required min="0" step="0.01" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option><option>Other</option></select></label></div>
+      <div class="form-row"><label>Condition<select name="condition"><option>New</option><option>Like new</option><option selected>Good</option><option>Fair</option></select></label><label>City<input name="city" required maxlength="60" placeholder="e.g. Columbus"></label></div>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
-      <p class="form-note">Demo mode: listings stay on this device. Connect a database before accepting real users.</p>
+      <p class="form-note">Listings are connected to your Flipora account. Never share payment or private contact details in a public description.</p>
       <button class="button" value="default" type="submit">Publish listing</button>
     </form>
   </dialog>
+  <dialog id="authDialog">
+    <form id="authForm">
+      <button class="dialog-close" type="button" data-close-auth aria-label="Close">×</button>
+      <p class="eyebrow" id="authEyebrow">Welcome back</p><h2 id="authTitle">Sign in to Flipora</h2>
+      <label id="displayNameLabel" hidden>Display name<input name="displayName" maxlength="50" autocomplete="name" placeholder="How buyers will see you"></label>
+      <label>Email<input name="email" required type="email" autocomplete="email" placeholder="you@example.com"></label>
+      <label>Password<input name="password" required minlength="8" type="password" autocomplete="current-password" placeholder="At least 8 characters"></label>
+      <p class="auth-message" id="authMessage" aria-live="polite"></p>
+      <button class="button" id="authSubmit" type="submit">Sign in</button>
+      <button class="text-button auth-switch" id="authSwitch" type="button">New here? Create an account</button>
+      <button class="text-button auth-switch" id="forgotPassword" type="button">Forgot your password?</button>
+    </form>
+  </dialog>
+  <dialog id="accountDialog">
+    <div class="account-panel">
+      <button class="dialog-close" type="button" data-close-account aria-label="Close">×</button>
+      <p class="eyebrow">Your account</p><h2 id="profileName">Flipora member</h2>
+      <p id="profileEmail" class="profile-email"></p>
+      <div class="account-stats"><div><strong id="listingCount">0</strong><span>Your listings</span></div><div><strong>✓</strong><span>Verified account</span></div></div>
+      <button class="button" data-open-sell>List a new item</button>
+      <button class="button button-secondary" id="signOutButton">Sign out</button>
+    </div>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="config.js" defer></script>
   <script src="script.js" defer></script>
 </body>
 </html>

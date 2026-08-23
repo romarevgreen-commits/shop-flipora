@@ -1,67 +1,25 @@
-const starterListings = [
-  { title: "Noise-canceling headphones", price: 48, category: "Tech", area: "2 miles away", emoji: "🎧", color: "#e8e1ff" },
-  { title: "Healthy monstera plant", price: 22, category: "Home", area: "1 mile away", emoji: "🪴", color: "#e3f4d5" },
-  { title: "Classic 35mm camera", price: 95, category: "Hobbies", area: "4 miles away", emoji: "📷", color: "#f5e4ce" },
-  { title: "Everyday canvas sneakers", price: 35, category: "Style", area: "3 miles away", emoji: "👟", color: "#dcecff" },
-  { title: "Compact turntable", price: 80, category: "Tech", area: "5 miles away", emoji: "🎵", color: "#f6ddeb" },
-  { title: "Ceramic table lamp", price: 30, category: "Home", area: "2 miles away", emoji: "💡", color: "#fff1c7" },
-  { title: "Weekend travel bag", price: 42, category: "Style", area: "6 miles away", emoji: "👜", color: "#e5ddda" },
-  { title: "Complete skateboard", price: 55, category: "Hobbies", area: "1 mile away", emoji: "🛹", color: "#dff4f1" }
-];
+const starterListings=[
+{title:"Noise-canceling headphones",price:48,category:"Tech",city:"2 miles away",emoji:"🎧",color:"#e8e1ff"},{title:"Healthy monstera plant",price:22,category:"Home",city:"1 mile away",emoji:"🪴",color:"#e3f4d5"},{title:"Classic 35mm camera",price:95,category:"Hobbies",city:"4 miles away",emoji:"📷",color:"#f5e4ce"},{title:"Everyday canvas sneakers",price:35,category:"Style",city:"3 miles away",emoji:"👟",color:"#dcecff"},{title:"Compact turntable",price:80,category:"Tech",city:"5 miles away",emoji:"🎵",color:"#f6ddeb"},{title:"Ceramic table lamp",price:30,category:"Home",city:"2 miles away",emoji:"💡",color:"#fff1c7"},{title:"Weekend travel bag",price:42,category:"Style",city:"6 miles away",emoji:"👜",color:"#e5ddda"},{title:"Complete skateboard",price:55,category:"Hobbies",city:"1 mile away",emoji:"🛹",color:"#dff4f1"}];
+const config=window.FLIPORA_CONFIG;
+const db=window.supabase.createClient(config.supabaseUrl,config.supabasePublishableKey);
+let listings=[...starterListings],currentUser=null,activeCategory="All",authMode="signin";
+const grid=document.querySelector("#listingGrid"),emptyState=document.querySelector("#emptyState"),searchInput=document.querySelector("#searchInput"),sellDialog=document.querySelector("#sellDialog"),authDialog=document.querySelector("#authDialog"),accountDialog=document.querySelector("#accountDialog");
 
-const saved = JSON.parse(localStorage.getItem("fliporaListings") || "[]");
-let listings = [...saved, ...starterListings];
-let activeCategory = "All";
-const grid = document.querySelector("#listingGrid");
-const emptyState = document.querySelector("#emptyState");
-const searchInput = document.querySelector("#searchInput");
+const escapeHtml=value=>String(value).replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
+const categoryEmoji=category=>({Tech:"💻",Home:"🏠",Style:"👕",Hobbies:"🎨",Other:"✨"})[category]||"✨";
+function renderListings(){const query=searchInput.value.trim().toLowerCase();const visible=listings.filter(item=>(activeCategory==="All"||item.category===activeCategory)&&item.title.toLowerCase().includes(query));grid.innerHTML=visible.map(item=>`<article class="listing-card"><div class="listing-image" style="--card-bg:${item.color||"#e8e1ff"}" aria-hidden="true">${item.emoji||"✨"}</div><div class="listing-body"><div class="listing-meta"><span class="listing-category">${escapeHtml(item.category)}</span><span class="price">$${Number(item.price).toLocaleString()}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.city||"Local pickup")}</p></div></article>`).join("");emptyState.hidden=visible.length!==0}
+async function loadListings(){const{data,error}=await db.from("listings").select("id,title,price,category,city,image_url,condition,created_at").eq("status","active").order("created_at",{ascending:false});if(!error&&data?.length)listings=[...data.map(item=>({...item,emoji:categoryEmoji(item.category),color:"#e8e1ff"})),...starterListings];renderListings()}
+document.querySelector("#categoryFilters").addEventListener("click",event=>{const button=event.target.closest("[data-category]");if(!button)return;activeCategory=button.dataset.category;document.querySelectorAll(".chip").forEach(chip=>chip.classList.toggle("active",chip===button));renderListings()});searchInput.addEventListener("input",renderListings);
 
-function renderListings() {
-  const query = searchInput.value.trim().toLowerCase();
-  const visible = listings.filter((item) =>
-    (activeCategory === "All" || item.category === activeCategory) &&
-    item.title.toLowerCase().includes(query)
-  );
-  grid.innerHTML = visible.map((item) => `
-    <article class="listing-card">
-      <div class="listing-image" style="--card-bg:${item.color}" aria-hidden="true">${item.emoji}</div>
-      <div class="listing-body">
-        <div class="listing-meta"><span class="listing-category">${item.category}</span><span class="price">$${Number(item.price).toLocaleString()}</span></div>
-        <h3>${escapeHtml(item.title)}</h3><p>${item.area}</p>
-      </div>
-    </article>`).join("");
-  emptyState.hidden = visible.length !== 0;
-}
-
-function escapeHtml(value) {
-  return value.replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
-}
-
-document.querySelector("#categoryFilters").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-category]");
-  if (!button) return;
-  activeCategory = button.dataset.category;
-  document.querySelectorAll(".chip").forEach((chip) => chip.classList.toggle("active", chip === button));
-  renderListings();
-});
-searchInput.addEventListener("input", renderListings);
-
-const dialog = document.querySelector("#sellDialog");
-document.querySelectorAll("[data-open-sell]").forEach((button) => button.addEventListener("click", () => dialog.showModal()));
-document.querySelector("#sellForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  const item = { title: String(form.get("title")), price: Number(form.get("price")), category: String(form.get("category")), area: "Just listed", emoji: "✨", color: "#e8e1ff" };
-  saved.unshift(item); listings.unshift(item);
-  localStorage.setItem("fliporaListings", JSON.stringify(saved));
-  event.currentTarget.reset(); dialog.close(); activeCategory = "All";
-  document.querySelectorAll(".chip").forEach((chip) => chip.classList.toggle("active", chip.dataset.category === "All"));
-  renderListings(); showToast("Your demo listing is live!");
-});
-
-function showToast(message) {
-  const toast = document.querySelector("#toast"); toast.textContent = message; toast.classList.add("show");
-  window.setTimeout(() => toast.classList.remove("show"), 2800);
-}
-document.querySelector("#year").textContent = new Date().getFullYear();
-renderListings();
+function setAuthMode(mode){authMode=mode;const signup=mode==="signup";document.querySelector("#authEyebrow").textContent=signup?"Join the community":"Welcome back";document.querySelector("#authTitle").textContent=signup?"Create your Flipora account":"Sign in to Flipora";document.querySelector("#authSubmit").textContent=signup?"Create account":"Sign in";document.querySelector("#authSwitch").textContent=signup?"Already have an account? Sign in":"New here? Create an account";document.querySelector("#displayNameLabel").hidden=!signup;document.querySelector("#forgotPassword").hidden=signup;document.querySelector("#authMessage").textContent="";document.querySelector("#authForm").elements.password.autocomplete=signup?"new-password":"current-password"}
+function openAuth(mode){setAuthMode(mode);if(!authDialog.open)authDialog.showModal()}
+document.querySelector("#signInButton").addEventListener("click",()=>openAuth("signin"));document.querySelector("#createAccountButton").addEventListener("click",()=>openAuth("signup"));document.querySelector("#authSwitch").addEventListener("click",()=>setAuthMode(authMode==="signin"?"signup":"signin"));document.querySelector("[data-close-auth]").addEventListener("click",()=>authDialog.close());document.querySelector("[data-close-account]").addEventListener("click",()=>accountDialog.close());document.querySelector("#accountButton").addEventListener("click",()=>accountDialog.showModal());
+document.querySelector("#authForm").addEventListener("submit",async event=>{event.preventDefault();const form=new FormData(event.currentTarget),email=String(form.get("email")).trim(),password=String(form.get("password")),message=document.querySelector("#authMessage"),submit=document.querySelector("#authSubmit");submit.disabled=true;submit.textContent="Please wait…";message.textContent="";const result=authMode==="signup"?await db.auth.signUp({email,password,options:{data:{display_name:String(form.get("displayName")||"").trim()},emailRedirectTo:`${location.origin}/`}}):await db.auth.signInWithPassword({email,password});submit.disabled=false;setAuthMode(authMode);if(result.error){message.textContent=result.error.message;return}if(authMode==="signup"&&!result.data.session){message.textContent="Check your email to verify your account, then sign in.";event.currentTarget.reset();return}authDialog.close();event.currentTarget.reset();showToast(authMode==="signup"?"Welcome to Flipora!":"Signed in successfully")});
+document.querySelector("#forgotPassword").addEventListener("click",async()=>{const email=document.querySelector("#authForm").elements.email.value.trim(),message=document.querySelector("#authMessage");if(!email){message.textContent="Enter your email first.";return}const{error}=await db.auth.resetPasswordForEmail(email,{redirectTo:`${location.origin}/`});message.textContent=error?error.message:"Password reset email sent."});
+document.querySelector("#signOutButton").addEventListener("click",async()=>{await db.auth.signOut();accountDialog.close();showToast("You are signed out")});
+document.querySelectorAll("[data-open-sell]").forEach(button=>button.addEventListener("click",()=>{if(!currentUser){openAuth("signup");document.querySelector("#authMessage").textContent="Create an account or sign in to sell.";return}if(accountDialog.open)accountDialog.close();sellDialog.showModal()}));
+document.querySelector("#sellForm").addEventListener("submit",async event=>{event.preventDefault();if(!currentUser)return openAuth("signin");const form=new FormData(event.currentTarget);const listing={seller_id:currentUser.id,title:String(form.get("title")).trim(),price:Number(form.get("price")),category:String(form.get("category")),condition:String(form.get("condition")),city:String(form.get("city")).trim(),description:String(form.get("description")||"").trim()};const{error}=await db.from("listings").insert(listing);if(error)return showToast(error.message);event.currentTarget.reset();sellDialog.close();await loadListings();await updateAccount(currentUser);showToast("Your listing is live!")});
+async function updateAccount(user){currentUser=user;const signedIn=Boolean(user);document.querySelector("#signInButton").hidden=signedIn;document.querySelector("#createAccountButton").hidden=signedIn;document.querySelector("#accountButton").hidden=!signedIn;if(!user)return;const name=user.user_metadata?.display_name||user.email.split("@")[0];document.querySelector("#accountName").textContent=name;document.querySelector("#accountInitial").textContent=name.charAt(0).toUpperCase();document.querySelector("#profileName").textContent=name;document.querySelector("#profileEmail").textContent=user.email;const{count}=await db.from("listings").select("id",{count:"exact",head:true}).eq("seller_id",user.id);document.querySelector("#listingCount").textContent=count||0}
+db.auth.onAuthStateChange((_event,session)=>updateAccount(session?.user||null));db.auth.getSession().then(({data})=>updateAccount(data.session?.user||null));
+function showToast(message){const toast=document.querySelector("#toast");toast.textContent=message;toast.classList.add("show");window.setTimeout(()=>toast.classList.remove("show"),3000)}
+document.querySelector("#year").textContent=new Date().getFullYear();loadListings();
