@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#5b35f2">
   <title>Flipora Marketplace — Buy quick! Sell quicker!</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260823-1515">
 </head>
 <body>
   <header class="site-header">
@@ -84,7 +84,7 @@
 
   <dialog id="sellDialog">
     <form id="sellForm" method="dialog">
-      <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+      <button class="dialog-close" type="button" aria-label="Close">×</button>
       <p class="eyebrow">Create a listing</p><h2>What are you selling?</h2>
       <label>Item name<input name="title" required maxlength="60" placeholder="e.g. Vintage desk lamp"></label>
       <div class="form-row"><label>Price<input name="price" required min="0" step="0.01" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option><option>Other</option></select></label></div>
@@ -122,9 +122,10 @@
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="config.js" defer></script>
-  <script src="script.js" defer></script>
-  <script src="enhancements.js" defer></script>
-  <script src="cover-photos.js?v=2" defer></script>
+  <script src="config.js?v=20260823-1515" defer></script>
+  <script src="script.js?v=20260823-1515" defer></script>
+  <script src="enhancements.js?v=20260823-1515" defer></script>
+  <script src="cover-photos.js?v=3" defer></script>
+  <script src="listing-image-fixes.js?v=1" defer></script>
 </body>
 </html>
