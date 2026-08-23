@@ -89,6 +89,8 @@
       <label>Item name<input name="title" required maxlength="60" placeholder="e.g. Vintage desk lamp"></label>
       <div class="form-row"><label>Price<input name="price" required min="0" step="0.01" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option><option>Other</option></select></label></div>
       <div class="form-row"><label>Condition<select name="condition"><option>New</option><option>Like new</option><option selected>Good</option><option>Fair</option></select></label><label>City<input name="city" required maxlength="60" placeholder="e.g. Columbus"></label></div>
+      <label>Item photo<input id="photoInput" name="photos" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required></label>
+      <div class="photo-preview" id="photoPreview" aria-live="polite"><p>Tap above to take photos or choose them from your gallery.</p></div>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
       <p class="form-note">Listings are connected to your Flipora account. Never share payment or private contact details in a public description.</p>
       <button class="button" value="default" type="submit">Publish listing</button>
