@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Flipora is a friendly local marketplace. Buy quick! Sell quicker!">
+  <meta name="theme-color" content="#5b35f2">
+  <title>Flipora Marketplace — Buy quick! Sell quicker!</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Flipora home">
+      <span class="brand-mark">F</span><span>flipora</span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="#browse">Browse</a>
+      <a href="#how-it-works">How it works</a>
+    </nav>
+    <button class="button button-small" data-open-sell>Sell an item</button>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Your neighborhood marketplace</p>
+        <h1>Buy quick!<br><span>Sell quicker!</span></h1>
+        <p class="hero-text">Discover great finds nearby or turn things you no longer need into cash—without the hassle.</p>
+        <div class="hero-actions">
+          <a class="button" href="#browse">Explore listings</a>
+          <button class="button button-secondary" data-open-sell>Start selling</button>
+        </div>
+        <div class="trust-row" aria-label="Marketplace benefits">
+          <span>✓ Free to list</span><span>✓ Local pickup</span><span>✓ Simple & fast</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-label="Featured marketplace finds">
+        <div class="float-card card-one"><span>🎧</span><strong>Headphones</strong><small>$48</small></div>
+        <div class="float-card card-two"><span>🪴</span><strong>Monstera</strong><small>$22</small></div>
+        <div class="float-card card-three"><span>📷</span><strong>Film camera</strong><small>$95</small></div>
+        <div class="orbit">flip it!</div>
+      </div>
+    </section>
+
+    <section class="browse-section" id="browse">
+      <div class="section-heading">
+        <div><p class="eyebrow">Fresh finds</p><h2>What are you looking for?</h2></div>
+        <label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Search listings" aria-label="Search listings"></label>
+      </div>
+      <div class="categories" id="categoryFilters" aria-label="Filter by category">
+        <button class="chip active" data-category="All">All</button>
+        <button class="chip" data-category="Tech">Tech</button>
+        <button class="chip" data-category="Home">Home</button>
+        <button class="chip" data-category="Style">Style</button>
+        <button class="chip" data-category="Hobbies">Hobbies</button>
+      </div>
+      <div class="listing-grid" id="listingGrid" aria-live="polite"></div>
+      <p class="empty-state" id="emptyState" hidden>No matches yet. Try another search.</p>
+    </section>
+
+    <section class="steps" id="how-it-works">
+      <div class="section-heading"><div><p class="eyebrow">Easy by design</p><h2>Flip it in three steps</h2></div></div>
+      <div class="step-grid">
+        <article><span>01</span><h3>Snap it</h3><p>Take a clear photo and add the details buyers care about.</p></article>
+        <article><span>02</span><h3>List it</h3><p>Set your price and publish your listing in moments.</p></article>
+        <article><span>03</span><h3>Sell it</h3><p>Connect with a buyer and arrange a safe local handoff.</p></article>
+      </div>
+    </section>
+
+    <section class="cta">
+      <p class="eyebrow">Make room. Make money.</p>
+      <h2>Your next sale is closer than you think.</h2>
+      <button class="button button-light" data-open-sell>List something free</button>
+    </section>
+  </main>
+
+  <footer><a class="brand" href="#top"><span class="brand-mark">F</span><span>flipora</span></a><p>Buy quick! Sell quicker!</p><small>© <span id="year"></span> Flipora Marketplace</small></footer>
+
+  <dialog id="sellDialog">
+    <form id="sellForm" method="dialog">
+      <button class="dialog-close" value="cancel" aria-label="Close">×</button>
+      <p class="eyebrow">Create a listing</p><h2>What are you selling?</h2>
+      <label>Item name<input name="title" required maxlength="60" placeholder="e.g. Vintage desk lamp"></label>
+      <div class="form-row"><label>Price<input name="price" required min="0" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option></select></label></div>
+      <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
+      <p class="form-note">Demo mode: listings stay on this device. Connect a database before accepting real users.</p>
+      <button class="button" value="default" type="submit">Publish listing</button>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="script.js" defer></script>
+</body>
+</html>
