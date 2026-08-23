@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Flipora marketplace — buy quick, sell quicker." />
+  <title>Flipora — Buy quick! Sell quicker!</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header><a class="brand" href="#top"><b>F</b> flipora</a><nav><a href="#browse">Shop</a><button data-view="seller">Seller</button><button data-view="admin">Admin</button></nav></header>
+  <main id="top">
+    <section class="hero"><div><span class="eyebrow">THE SMARTER WAY TO BUY & SELL</span><h1>Buy quick! <em>Sell quicker!</em></h1><p>Good finds. Great stories. Discover new and pre-loved treasures from people and shops you can trust.</p><div class="actions"><a class="primary" href="#browse">Start shopping</a><button data-view="seller">Sell an item</button></div></div><div class="hero-card"><small>SELLER MEMBERSHIP</small><h2>Join Flipora and start selling</h2><strong>$9.99 <span>/ month</span></strong><button id="membership">Join & pay securely</button></div></section>
+    <section id="browse"><div class="section-head"><div><span class="eyebrow">FRESH FINDS</span><h2>Explore the marketplace</h2></div><label>Sort <select id="sort"><option value="featured">Featured</option><option value="low">Price: Low</option><option value="high">Price: High</option></select></label></div><div id="products" class="grid"></div></section>
+    <section id="seller" class="panel hidden"><div class="section-head"><div><span class="eyebrow">SELLER ACCOUNT</span><h2>Create a listing</h2></div><button id="stripe">Connect Stripe payouts</button></div><form id="listing-form"><label>Product title<input name="title" required /></label><label>Description<textarea name="description" required></textarea></label><label>Price<input name="price" type="number" min="1" step=".01" required /></label><label>Condition<select name="condition"><option>New</option><option>Used – Like new</option><option>Used – Good</option><option>Used – Fair</option></select></label><label>Category<select name="category"><option>Electronics</option><option>Fashion</option><option>Home</option><option>Vehicles</option><option>Sports</option><option>Gaming</option><option>Collectibles</option><option>Other</option></select></label><label>Delivery<select name="delivery"><option>Shipping</option><option>Local pickup</option><option>Shipping or local pickup</option></select></label><label>Public city or ZIP<input name="location" required /></label><label>Image URL<input name="image" placeholder="https://…" /></label><button class="primary" type="submit">Submit for approval</button></form><div id="seller-message" class="notice"></div></section>
+    <section id="admin" class="panel hidden"><span class="eyebrow">MARKETPLACE ADMINISTRATION</span><h2>Listing approval</h2><p>Review seller submissions before they appear publicly.</p><div id="queue" class="queue"></div></section>
+  </main>
+  <footer><b>F flipora</b><span>Find more. Waste less. Sell smarter.</span><span>© 2026 Flipora Marketplace</span></footer>
+  <script src="app.js"></script>
+</body>
+</html>
