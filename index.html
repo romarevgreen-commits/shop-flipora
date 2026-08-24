@@ -9,6 +9,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css?v=20260823-1515">
   <link rel="stylesheet" href="opportunities.css?v=20260824-1">
+  <link rel="stylesheet" href="advertising.css?v=1">
 </head>
 <body>
   <header class="site-header">
@@ -18,6 +19,7 @@
     <nav aria-label="Main navigation">
       <a href="#browse">Browse</a>
       <a href="#opportunities">Opportunities</a>
+      <a href="#advertise">Advertise</a>
       <a href="#how-it-works">How it works</a>
     </nav>
     <div class="header-actions">
@@ -87,6 +89,21 @@
       <p class="opportunity-note">Flipora provides advertising and marketplace tools. Independent providers are responsible for required licenses, insurance and legal compliance.</p>
     </section>
 
+    <section class="advertise-section" id="advertise">
+      <div class="advertise-copy">
+        <p class="eyebrow">Grow your business</p>
+        <h2>Add your ad to Flipora</h2>
+        <p>Reach local shoppers, sellers and business owners. Choose an advertising package and pay securely through Stripe.</p>
+        <ul><li>Business name and message</li><li>Website or contact link</li><li>Clear package duration</li></ul>
+      </div>
+      <div class="ad-package-grid" aria-label="Advertising packages">
+        <article class="ad-package"><span>Starter</span><h3>$19</h3><p>7-day marketplace advertisement</p><button class="button ad-checkout-button" data-ad-package="starter">Add your ad</button></article>
+        <article class="ad-package featured"><span>Best value</span><h3>$49</h3><p>30-day marketplace advertisement</p><button class="button ad-checkout-button" data-ad-package="business">Add your ad</button></article>
+        <article class="ad-package"><span>Featured</span><h3>$99</h3><p>30-day priority homepage advertisement</p><button class="button ad-checkout-button" data-ad-package="featured">Add your ad</button></article>
+      </div>
+      <p class="ad-disclosure">Advertisements are reviewed before publication. Prohibited, misleading or unlawful ads will not be accepted.</p>
+    </section>
+
     <section class="steps" id="how-it-works">
       <div class="section-heading"><div><p class="eyebrow">Easy by design</p><h2>Flip it in three steps</h2></div></div>
       <div class="step-grid">
@@ -150,5 +167,6 @@
   <script src="enhancements.js?v=20260823-1515" defer></script>
   <script src="cover-photos.js?v=3" defer></script>
   <script src="listing-image-fixes.js?v=1" defer></script>
+  <script src="advertising.js?v=1" defer></script>
 </body>
 </html>
