@@ -15,10 +15,11 @@ exports.handler = async (event) => {
     if (listing.seller_id === buyer.id) throw new Error("You cannot buy your own listing");
 
     const sellers = await userRest(
-      `profiles?id=eq.${encodeURIComponent(listing.seller_id)}&select=stripe_account_id,stripe_onboarding_complete`,
+      `profiles?id=eq.${encodeURIComponent(listing.seller_id)}&select=stripe_account_id,stripe_onboarding_complete,membership_active`,
       event
     );
     const seller = sellers?.[0];
+    if (!seller?.membership_active) throw new Error("Seller membership is not active");
     if (!seller?.stripe_account_id || !seller.stripe_onboarding_complete) {
       throw new Error("Seller payouts are not ready");
     }
