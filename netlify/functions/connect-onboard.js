@@ -1,10 +1,11 @@
-const { stripe, json, authenticatedUser, userRest, siteUrl } = require("./_shared");
+const { stripe, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
   try {
     const user = await authenticatedUser(event);
-    const profiles = await userRest(`profiles?id=eq.${encodeURIComponent(user.id)}&select=id,stripe_account_id`, event);
+    const profiles = await userRest(`profiles?id=eq.${encodeURIComponent(user.id)}&select=id,stripe_account_id,membership_active`, event);
+    if (!profiles?.[0]?.membership_active) throw new Error("Pay the $9.99 lifetime membership fee before connecting seller payouts");
     let accountId = profiles?.[0]?.stripe_account_id;
     if (!accountId) {
       const account = await stripe().accounts.create({
@@ -15,7 +16,7 @@ exports.handler = async (event) => {
         metadata: { flipora_user_id: user.id }
       });
       accountId = account.id;
-      await userRest(`profiles?id=eq.${encodeURIComponent(user.id)}`, event, {
+      await rest(`profiles?id=eq.${encodeURIComponent(user.id)}`, {
         method: "PATCH",
         body: JSON.stringify({ stripe_account_id: accountId })
       });

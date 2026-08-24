@@ -40,6 +40,10 @@
           <a class="button" href="#browse">Explore listings</a>
           <button class="button button-secondary" data-open-sell>Start selling</button>
         </div>
+        <div class="membership-cover-card">
+          <div><span>Seller membership</span><strong>$9.99 <small>one time · lifetime</small></strong><p>Post items for free. Become a member to connect payouts and receive your seller earnings.</p></div>
+          <button class="button membership-checkout-button" type="button">Become a member</button>
+        </div>
         <div class="trust-row" aria-label="Marketplace benefits">
           <span>✓ Local opportunities</span><span>✓ Secure checkout</span><span>✓ Seller payouts</span>
         </div>
@@ -160,7 +164,8 @@
         <label class="profile-location-input"><span class="sr-only">Seller location</span><input id="sellerLocationInput" maxlength="100" placeholder="e.g. Macon, GA"><button class="button button-small" id="saveSellerLocation" type="button">Save</button></label>
         <a id="profileDirectionsLink" class="directions-link" href="#" target="_blank" rel="noopener" hidden>Open location in Maps</a>
       </div>
-      <div class="payout-card"><div><strong>Seller payouts</strong><span id="payoutStatus">Not connected</span></div><button class="button button-small" id="connectStripeButton">Connect Stripe</button></div>
+      <div class="membership-status-card"><div><strong>Lifetime membership</strong><span id="membershipStatus">Not active</span></div><button class="button button-small membership-checkout-button" id="accountMembershipButton" type="button">Pay $9.99</button></div>
+      <div class="payout-card"><div><strong>Seller payouts</strong><span id="payoutStatus">Membership required</span></div><button class="button button-small" id="connectStripeButton">Unlock payouts</button></div>
       <button class="button" data-open-sell>List a new item</button>
       <button class="button button-secondary" id="signOutButton">Sign out</button>
     </div>
@@ -181,7 +186,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
-  <script src="script.js?v=20260824-location-1" defer></script>
+  <script src="script.js?v=20260824-membership-1" defer></script>
   <script src="enhancements.js?v=20260824-active-count-2" defer></script>
   <script src="cover-photos.js?v=3" defer></script>
   <script src="listing-image-fixes.js?v=1" defer></script>
