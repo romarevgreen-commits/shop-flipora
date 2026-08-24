@@ -50,3 +50,24 @@
   transform:scale(1.28);
   transform-origin:center bottom;
 }
+
+
+/* Place language controls directly beneath the sign-in controls. */
+.site-header{height:auto;min-height:98px}
+.header-controls{display:grid;justify-items:start;gap:5px}
+.header-controls .language-picker{
+  position:static;
+  z-index:auto;
+  margin:0!important;
+  padding:5px 9px;
+  box-shadow:none;
+}
+@media(max-width:900px){
+  .site-header{min-height:88px;flex-wrap:nowrap}
+  .header-controls{margin-left:auto}
+  .header-controls .language-picker{position:static;order:initial;margin:0!important}
+}
+@media(max-width:560px){
+  .site-header{min-height:86px;height:auto;padding-top:8px;padding-bottom:8px}
+  .header-controls{gap:4px}
+}
