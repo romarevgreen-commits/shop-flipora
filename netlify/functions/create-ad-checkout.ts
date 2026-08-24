@@ -20,9 +20,20 @@ export default async (request: Request) => {
     const secretKey = Netlify.env.get("STRIPE_SECRET_KEY");
     if (!secretKey) throw new Error("Advertising checkout is not configured");
 
-    const { packageId } = await request.json();
+    const { packageId, businessName, message, destinationUrl } = await request.json();
     const selected = packages[packageId as keyof typeof packages];
     if (!selected) return json(400, { error: "Invalid advertising package" });
+    const cleanName = String(businessName || "").trim().slice(0, 60);
+    const cleanMessage = String(message || "").trim().slice(0, 180);
+    if (!cleanName || !cleanMessage) return json(400, { error: "Business name and ad message are required" });
+    let cleanUrl: string;
+    try {
+      const parsed = new URL(String(destinationUrl || ""));
+      if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
+      cleanUrl = parsed.toString().slice(0, 300);
+    } catch {
+      return json(400, { error: "Enter a valid website or contact link" });
+    }
 
     const stripe = new Stripe(secretKey, { apiVersion: "2026-07-29.dahlia" });
     const siteUrl = Netlify.env.get("SITE_URL") || "https://shop-flipora.netlify.app";
@@ -39,7 +50,7 @@ export default async (request: Request) => {
       }],
       success_url: `${siteUrl}/?ad=success&session_id={CHECKOUT_SESSION_ID}#advertise`,
       cancel_url: `${siteUrl}/?ad=cancelled#advertise`,
-      metadata: { purchase_type: "advertisement", package_id: packageId, duration_days: String(selected.days), placement: selected.placement }
+      metadata: { purchase_type: "advertisement", package_id: packageId, duration_days: String(selected.days), placement: selected.placement, business_name: cleanName, ad_message: cleanMessage, destination_url: cleanUrl }
     });
 
     return json(200, { url: session.url });
