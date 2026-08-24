@@ -160,7 +160,7 @@
     }
     sellerItemsList.innerHTML = '<p class="seller-empty">Loading your listings…</p>';
     const { data, error } = await sellerDb.from('listings')
-      .select('id,title,price,status,image_url,created_at')
+      .select('id,title,price,status,image_url,image_urls,created_at')
       .eq('seller_id', session.user.id)
       .in('status', ['active','sold'])
       .order('created_at', { ascending: false });
@@ -194,7 +194,7 @@
     const session = await getSellerSession();
     if (!session) throw new Error('Sign in required.');
     const { data, error } = await sellerDb.from('listings')
-      .select('id,seller_id,status,image_url,title')
+      .select('id,seller_id,status,image_url,image_urls,title')
       .eq('id', id)
       .eq('seller_id', session.user.id)
       .single();
@@ -203,13 +203,13 @@
   }
 
   async function deleteStoredPhoto(listing) {
-    if (!listing?.image_url) return;
-    const path = storagePathFromUrl(listing.image_url);
-    if (path) {
-      const { error } = await sellerDb.storage.from('listing-images').remove([path]);
+    const urls = [...new Set([listing?.image_url, ...(Array.isArray(listing?.image_urls) ? listing.image_urls : [])].filter(Boolean))];
+    const paths = urls.map(storagePathFromUrl).filter(Boolean);
+    if (paths.length) {
+      const { error } = await sellerDb.storage.from('listing-images').remove(paths);
       if (error) throw error;
     }
-    const { error: updateError } = await sellerDb.from('listings').update({ image_url: null }).eq('id', listing.id);
+    const { error: updateError } = await sellerDb.from('listings').update({ image_url: null, image_urls: [] }).eq('id', listing.id);
     if (updateError) throw updateError;
   }
 
@@ -237,7 +237,7 @@
         const { session, listing } = await getOwnedListing(removeButton.dataset.removeSold);
         if (listing.status !== 'sold') throw new Error('Only sold items can be removed here.');
         if (listing.image_url) await deleteStoredPhoto(listing);
-        const { error } = await sellerDb.from('listings').update({ status: 'hidden', image_url: null }).eq('id', listing.id).eq('seller_id', session.user.id);
+        const { error } = await sellerDb.from('listings').update({ status: 'hidden', image_url: null, image_urls: [] }).eq('id', listing.id).eq('seller_id', session.user.id);
         if (error) throw error;
         notify('Sold item removed from your visible seller list.');
       }
