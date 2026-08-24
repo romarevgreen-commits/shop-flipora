@@ -1,0 +1,35 @@
+.reviews-page{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:48px 0 80px}
+.reviews-hero{text-align:center;max-width:760px;margin:0 auto 34px}
+.reviews-hero h1{font-size:clamp(2.3rem,7vw,4.6rem);margin:.15em 0;color:var(--ink)}
+.reviews-hero>p:last-child{color:var(--muted);line-height:1.7}
+.reviews-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,.7fr);gap:28px;align-items:start}
+.review-feed-section,.add-review-card,.seller-review-profile{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 14px 40px rgba(36,29,59,.07)}
+.review-feed{display:grid;gap:14px}
+.review-card{padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--cream);display:grid;gap:10px}
+.review-card.demo{border-style:dashed;background:#faf8ff}
+.review-card-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.reviewer{display:flex;align-items:center;gap:10px}
+.mini-avatar,.public-avatar{border-radius:50%;overflow:hidden;background:#e8e1ff;color:var(--purple);display:grid;place-items:center;font-weight:900;flex:0 0 auto}
+.mini-avatar{width:42px;height:42px}.public-avatar{width:92px;height:92px;font-size:2.1rem}
+.mini-avatar img,.public-avatar img{width:100%;height:100%;object-fit:cover}
+.review-role,.demo-label{display:inline-flex;width:max-content;padding:4px 8px;border-radius:999px;font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;background:#e8e1ff;color:var(--purple)}
+.demo-label{background:#fff1c7;color:#714f00}
+.stars{color:#f5a000;letter-spacing:.08em;font-size:1.05rem;white-space:nowrap}
+.review-card p{margin:0;line-height:1.55}.review-date{font-size:.7rem;color:var(--muted)}
+.add-review-card{position:sticky;top:88px;display:grid;gap:8px}
+.add-review-card form{display:grid;gap:14px;margin-top:10px}
+.review-auth-note{color:var(--muted);font-size:.82rem}
+.star-picker{border:0;padding:0;margin:0;display:flex;gap:6px;flex-wrap:wrap}
+.star-picker legend{font-weight:800;margin-bottom:7px}
+.star-picker label{cursor:pointer}.star-picker input{position:absolute;opacity:0}
+.star-picker label span{display:block;padding:8px;border:1px solid var(--line);border-radius:10px;color:#f5a000;background:#fff}
+.star-picker label small{display:none}.star-picker input:checked+span{border-color:var(--purple);box-shadow:0 0 0 2px #e8e1ff}
+.seller-review-profile{margin:0 auto 28px;display:flex;align-items:center;gap:22px;max-width:760px}
+.seller-review-profile h2{margin:3px 0}.seller-review-profile p{margin:0;color:var(--muted)}
+.rating-summary{display:flex;align-items:baseline;gap:10px;margin-top:8px}.rating-summary span{font-size:1.4rem;font-weight:900;color:#f5a000}.rating-summary small{color:var(--muted)}
+.profile-photo-card{border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;align-items:center;gap:14px;background:#fff}
+.profile-photo-card>div:last-of-type{display:grid;gap:5px;min-width:0}.profile-photo-card span{color:var(--muted);font-size:.76rem;line-height:1.4}
+.profile-avatar-wrap{width:74px;height:74px;border-radius:50%;overflow:hidden;background:#e8e1ff;color:var(--purple);display:grid;place-items:center;font-size:1.8rem;font-weight:900;flex:0 0 auto}
+.profile-avatar-wrap img{width:100%;height:100%;object-fit:cover}
+.seller-profile-link{display:inline-flex;margin:8px 0;color:var(--purple);font-weight:800}
+@media(max-width:820px){.reviews-layout{grid-template-columns:1fr}.add-review-card{position:static}.seller-review-profile{align-items:flex-start}.review-card-head{flex-direction:column}.reviews-page{padding-top:30px}}

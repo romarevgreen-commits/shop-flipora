@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Read real Flipora seller reviews and share your experience.">
+  <meta name="theme-color" content="#5b35f2">
+  <title>Seller Reviews & Comments — Flipora</title>
+  <link rel="stylesheet" href="styles.css?v=20260824-profiles-reviews-1">
+  <link rel="stylesheet" href="reviews.css?v=20260824-1">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/"><span class="brand-mark">F</span><span>flipora</span></a>
+    <nav aria-label="Main navigation"><a href="/">Marketplace</a><a href="/#browse">Browse</a><a href="/reviews.html" aria-current="page">Reviews</a></nav>
+    <a class="button button-small" href="/">Your account</a>
+  </header>
+  <main class="reviews-page">
+    <section class="reviews-hero">
+      <p class="eyebrow">Community trust</p>
+      <h1>Seller reviews & comments</h1>
+      <p>Read experiences submitted by signed-in Flipora members. Demo examples are always labeled and never counted as real ratings.</p>
+    </section>
+
+    <section class="seller-review-profile" id="sellerReviewProfile" hidden>
+      <div class="public-avatar"><img id="sellerAvatar" alt="" hidden><span id="sellerAvatarPlaceholder">F</span></div>
+      <div><p class="eyebrow">Seller profile</p><h2 id="sellerProfileName">Flipora seller</h2><p id="sellerProfileCity"></p><div class="rating-summary"><span id="sellerAverage">New</span><small id="sellerReviewCount">No reviews yet</small></div></div>
+    </section>
+
+    <div class="reviews-layout">
+      <section class="review-feed-section">
+        <div class="section-heading"><div><p class="eyebrow">Member feedback</p><h2 id="reviewFeedTitle">Recent reviews</h2></div></div>
+        <div class="review-feed" id="reviewFeed"><p>Loading reviews…</p></div>
+      </section>
+
+      <aside class="add-review-card">
+        <p class="eyebrow">Add your comment</p>
+        <h2>Review a seller</h2>
+        <p class="review-auth-note" id="reviewAuthNote">Sign in on Flipora before submitting a review.</p>
+        <form id="reviewForm">
+          <label>Seller<select name="sellerId" id="reviewSeller" required><option value="">Choose a seller</option></select></label>
+          <label>Your role for this review<select name="reviewerRole"><option value="buyer">Buyer</option><option value="seller">Seller</option></select></label>
+          <fieldset class="star-picker"><legend>Star rating</legend>
+            <label><input type="radio" name="rating" value="5" required><span>★★★★★</span><small>5</small></label>
+            <label><input type="radio" name="rating" value="4"><span>★★★★☆</span><small>4</small></label>
+            <label><input type="radio" name="rating" value="3"><span>★★★☆☆</span><small>3</small></label>
+            <label><input type="radio" name="rating" value="2"><span>★★☆☆☆</span><small>2</small></label>
+            <label><input type="radio" name="rating" value="1"><span>★☆☆☆☆</span><small>1</small></label>
+          </fieldset>
+          <label>Comment<textarea name="comment" rows="5" minlength="10" maxlength="500" required placeholder="Describe your honest experience with this seller."></textarea></label>
+          <p class="form-note">Only submit truthful experiences. One review is allowed per member for each seller.</p>
+          <button class="button" type="submit">Publish review</button>
+        </form>
+      </aside>
+    </div>
+  </main>
+  <footer><a class="brand" href="/"><span class="brand-mark">F</span><span>flipora</span></a><p>Buy quick! Sell quicker!</p><p><a href="mailto:fliporashopp@gmail.com">fliporashopp@gmail.com</a> · <a href="tel:+14785505766">478-550-5766</a></p><small>© <span id="year"></span> Flipora Marketplace</small></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="config.js?v=20260823-1515" defer></script>
+  <script src="reviews.js?v=20260824-1" defer></script>
+</body>
+</html>
