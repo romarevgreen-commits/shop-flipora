@@ -66,4 +66,4 @@ async function rest(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-module.exports = { stripe, json, authenticatedUser, userRest, rest, siteUrl, required };
+module.exports = { stripe, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable };
