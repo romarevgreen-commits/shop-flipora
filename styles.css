@@ -13,3 +13,22 @@
 .label-hint{font-weight:600;color:var(--muted)}.photo-preview{min-height:92px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:10px;border:1px dashed var(--violet);border-radius:12px;background:#faf8ff}.photo-preview p{grid-column:1/-1;align-self:center;margin:0;text-align:center;color:var(--muted);font-size:.78rem}.photo-preview img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px}.listing-image img{width:100%;height:100%;object-fit:cover}.button:disabled{opacity:.65;cursor:wait;transform:none}@media(max-width:560px){.photo-preview{grid-template-columns:repeat(3,1fr)}}
 .photo-source-fieldset{min-width:0;margin:0;padding:0;border:0}.photo-source-fieldset legend{margin-bottom:8px;font-size:.82rem;font-weight:800}.photo-source-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px}.photo-source-buttons .button{padding:12px;box-shadow:none}.photo-source-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}@media(max-width:480px){.photo-source-buttons{grid-template-columns:1fr}}
 .listing-card{cursor:pointer}.listing-card:focus-visible{outline:3px solid var(--violet);outline-offset:3px}.listing-dialog{width:min(920px,calc(100% - 24px));max-height:calc(100vh - 24px);overflow:auto}.listing-detail{position:relative;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:28px;padding:34px}.listing-gallery{min-width:0}.listing-gallery-main{height:min(54vw,500px);max-height:500px;display:grid;place-items:center;overflow:hidden;border-radius:18px;background:#eee;font-size:6rem}.listing-gallery-main img{width:100%;height:100%;object-fit:contain;background:#f5f3f8}.listing-thumbnails{display:flex;gap:9px;overflow-x:auto;padding-top:10px}.listing-thumbnail{flex:0 0 72px;height:62px;border:2px solid transparent;border-radius:10px;padding:0;overflow:hidden;background:#eee;cursor:pointer}.listing-thumbnail.active{border-color:var(--purple)}.listing-thumbnail img{width:100%;height:100%;object-fit:cover}.listing-detail-copy{align-self:center;display:grid;gap:12px}.listing-detail-copy h2{margin:0;font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.05}.listing-detail-condition{margin:0;font-weight:850}.listing-detail-description{margin:0;color:var(--muted);line-height:1.65;white-space:pre-wrap}.listing-detail-copy .buy-button{margin-top:6px}.photo-preview{position:relative}.photo-preview img{cursor:pointer}.photo-count{grid-column:1/-1;margin:0;color:var(--purple);font-size:.75rem;font-weight:850;text-align:right}@media(max-width:700px){.listing-detail{grid-template-columns:1fr;padding:24px}.listing-gallery-main{height:330px}.listing-detail-copy{padding-bottom:8px}}
+
+
+/* Buyer-to-seller messaging */
+.account-button{position:relative}
+.message-notification-pin{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#e11900;color:#fff;font-size:.68rem;font-weight:900;line-height:1;box-shadow:0 0 0 3px #fff}
+.account-button .message-notification-pin{position:absolute;right:-8px;top:-9px}
+.message-seller-button{width:100%;margin-top:8px}
+.seller-messages-card{border:1px solid var(--line);border-radius:16px;padding:15px;display:grid;gap:12px;background:#fff}
+.seller-messages-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seller-messages-head>div{display:grid;gap:3px}
+.seller-messages-head span:not(.message-notification-pin){color:var(--muted);font-size:.76rem}
+.seller-message-list{display:grid;gap:10px;max-height:340px;overflow:auto}
+.seller-message{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--cream);display:grid;gap:9px}
+.seller-message.unread{border-color:var(--purple);box-shadow:inset 4px 0 0 var(--purple)}
+.seller-message-meta{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.seller-message-meta time{font-size:.66rem;color:var(--muted);white-space:nowrap}
+.seller-message p,.seller-message-empty{margin:0;color:var(--ink);font-size:.82rem;line-height:1.5;white-space:pre-wrap}
+.seller-reply-link{font-size:.76rem;font-weight:800;color:var(--purple)}
+#messageSellerDialog form{width:min(520px,calc(100vw - 32px))}
