@@ -81,9 +81,10 @@
   }
 
   const photoInput = document.querySelector('#photoInput');
+  const cameraInput = document.querySelector('#cameraInput');
   const photoPreview = document.querySelector('#photoPreview');
   const sellForm = document.querySelector('#sellForm');
-  if (photoInput && photoPreview && !document.querySelector('#removePhotoButton')) {
+  if (photoInput && cameraInput && photoPreview && !document.querySelector('#removePhotoButton')) {
     const actionRow = document.createElement('div');
     actionRow.className = 'photo-action-row';
     actionRow.innerHTML = `
@@ -98,16 +99,19 @@
       if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
       previewBlobUrl = null;
       photoInput.value = '';
-      photoPreview.innerHTML = '<p>Tap above to take photos or choose them from your gallery.</p>';
+      cameraInput.value = '';
+      photoPreview.innerHTML = '<p>Take a new photo or choose one from your gallery or files.</p>';
       removeButton.hidden = true;
     };
 
-    photoInput.addEventListener('change', () => {
+    const updatePhotoAction = () => {
       if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
       const img = photoPreview.querySelector('img');
       previewBlobUrl = img && img.src.startsWith('blob:') ? img.src : null;
-      removeButton.hidden = !photoInput.files?.length;
-    });
+      removeButton.hidden = !(photoInput.files?.length || cameraInput.files?.length);
+    };
+    photoInput.addEventListener('change', updatePhotoAction);
+    cameraInput.addEventListener('change', updatePhotoAction);
     removeButton.addEventListener('click', clearPreview);
     sellForm?.addEventListener('reset', () => window.setTimeout(() => {
       previewBlobUrl = null;
