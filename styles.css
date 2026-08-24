@@ -42,3 +42,11 @@
 /* Keep the language selector in the upper-right corner. */
 .language-picker{position:fixed;top:14px;right:14px;z-index:1200;margin:0!important;box-shadow:0 8px 24px rgba(34,27,51,.14)}
 @media(max-width:900px){.language-picker{position:fixed;top:10px;right:10px;order:initial;margin:0!important;padding:6px 8px}.language-picker select{max-width:92px}}
+
+
+/* Keep seller-uploaded item photos focused on the product instead of empty space. */
+.listing-card:not([data-listing-key^="sample-"]) .listing-image img{
+  object-position:center bottom;
+  transform:scale(1.28);
+  transform-origin:center bottom;
+}
