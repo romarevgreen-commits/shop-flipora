@@ -62,4 +62,38 @@
 
   const observer = new MutationObserver(() => repairAll());
   observer.observe(grid, { childList: true, subtree: true });
+
+  const photoViewer = document.createElement("dialog");
+  photoViewer.className = "photo-lightbox";
+  photoViewer.setAttribute("aria-label", "Item photo viewer");
+  photoViewer.innerHTML = `
+    <button class="photo-lightbox-close" type="button" aria-label="Close photo">×</button>
+    <img alt="">
+  `;
+  document.body.appendChild(photoViewer);
+
+  const viewerStyle = document.createElement("style");
+  viewerStyle.textContent = `
+    .photo-lightbox{width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:48px 18px 18px;border:0;border-radius:0;background:#fff}
+    .photo-lightbox::backdrop{background:rgba(24,20,43,.82)}
+    .photo-lightbox img{width:100%;height:100%;display:block;object-fit:contain;object-position:center;background:#fff}
+    .photo-lightbox-close{position:fixed;right:18px;top:14px;z-index:2;width:42px;height:42px;border:0;border-radius:50%;background:var(--ink);color:#fff;font-size:1.75rem;line-height:1;cursor:pointer}
+  `;
+  document.head.appendChild(viewerStyle);
+
+  grid.addEventListener("click", event => {
+    const image = event.target.closest(".listing-image img");
+    if (!image) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const viewerImage = photoViewer.querySelector("img");
+    viewerImage.src = image.currentSrc || image.src;
+    viewerImage.alt = image.closest(".listing-card")?.querySelector("h3")?.textContent?.trim() || "Item photo";
+    photoViewer.showModal();
+  }, true);
+
+  photoViewer.querySelector(".photo-lightbox-close").addEventListener("click", () => photoViewer.close());
+  photoViewer.addEventListener("click", event => {
+    if (event.target === photoViewer) photoViewer.close();
+  });
 })();
