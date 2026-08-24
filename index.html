@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#5b35f2">
   <title>Flipora Marketplace — Buy quick! Sell quicker!</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260823-1515">
+  <link rel="stylesheet" href="styles.css?v=20260824-location-1">
   <link rel="stylesheet" href="opportunities.css?v=20260824-1">
   <link rel="stylesheet" href="advertising.css?v=1">
 </head>
@@ -155,6 +155,11 @@
       <p class="eyebrow">Your account</p><h2 id="profileName">Flipora member</h2>
       <p id="profileEmail" class="profile-email"></p>
       <div class="account-stats"><div><strong id="listingCount">0</strong><span>Items still listed</span></div><div><strong>✓</strong><span>Verified account</span></div></div>
+      <div class="profile-location-card">
+        <div><strong>Seller location</strong><span>Add a city, ZIP code, or safe public meetup location.</span></div>
+        <label class="profile-location-input"><span class="sr-only">Seller location</span><input id="sellerLocationInput" maxlength="100" placeholder="e.g. Macon, GA"><button class="button button-small" id="saveSellerLocation" type="button">Save</button></label>
+        <a id="profileDirectionsLink" class="directions-link" href="#" target="_blank" rel="noopener" hidden>Open location in Maps</a>
+      </div>
       <div class="payout-card"><div><strong>Seller payouts</strong><span id="payoutStatus">Not connected</span></div><button class="button button-small" id="connectStripeButton">Connect Stripe</button></div>
       <button class="button" data-open-sell>List a new item</button>
       <button class="button button-secondary" id="signOutButton">Sign out</button>
@@ -176,8 +181,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
-  <script src="script.js?v=20260823-1515" defer></script>
-  <script src="enhancements.js?v=20260823-1515" defer></script>
+  <script src="script.js?v=20260824-location-1" defer></script>
+  <script src="enhancements.js?v=20260824-active-count-2" defer></script>
   <script src="cover-photos.js?v=3" defer></script>
   <script src="listing-image-fixes.js?v=1" defer></script>
   <script src="advertising.js?v=1" defer></script>
