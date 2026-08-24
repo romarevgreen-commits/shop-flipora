@@ -10,7 +10,8 @@
   "keywords": ["marketplace", "netlify", "static-site"],
   "license": "UNLICENSED",
   "dependencies": {
-    "stripe": "^18.5.0"
+    "@netlify/functions": "^4.2.2",
+    "stripe": "^22.4.0"
   }
 }
 
