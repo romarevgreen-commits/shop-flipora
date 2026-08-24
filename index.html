@@ -8,6 +8,8 @@
   <title>Flipora Marketplace — Buy quick! Sell quicker!</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css?v=20260823-1515">
+  <link rel="stylesheet" href="opportunities.css?v=20260824-1">
+  <link rel="stylesheet" href="advertising.css?v=1">
 </head>
 <body>
   <header class="site-header">
@@ -16,6 +18,8 @@
     </a>
     <nav aria-label="Main navigation">
       <a href="#browse">Browse</a>
+      <a href="#opportunities">Opportunities</a>
+      <a href="#advertise">Advertise</a>
       <a href="#how-it-works">How it works</a>
     </nav>
     <div class="header-actions">
@@ -31,13 +35,13 @@
       <div class="hero-copy">
         <p class="eyebrow">Your neighborhood marketplace</p>
         <h1>Buy quick!<br><span>Sell quicker!</span></h1>
-        <p class="hero-text">Discover great finds nearby or turn things you no longer need into cash—without the hassle.</p>
+        <p class="hero-text">Shop, sell and grow in one place. Discover local products, equipment, hauling, jobs, events and business services.</p>
         <div class="hero-actions">
           <a class="button" href="#browse">Explore listings</a>
           <button class="button button-secondary" data-open-sell>Start selling</button>
         </div>
         <div class="trust-row" aria-label="Marketplace benefits">
-          <span>✓ Free to list</span><span>✓ Local pickup</span><span>✓ Simple & fast</span>
+          <span>✓ Local opportunities</span><span>✓ Secure checkout</span><span>✓ Seller payouts</span>
         </div>
       </div>
       <div class="hero-art" aria-label="Featured marketplace finds">
@@ -59,9 +63,45 @@
         <button class="chip" data-category="Home">Home</button>
         <button class="chip" data-category="Style">Style</button>
         <button class="chip" data-category="Hobbies">Hobbies</button>
+        <button class="chip" data-category="Vehicles">Vehicles</button>
+        <button class="chip" data-category="Lawn & Garden">Lawn & Garden</button>
+        <button class="chip" data-category="Tools">Tools</button>
+        <button class="chip" data-category="Heavy Equipment">Heavy Equipment</button>
+        <button class="chip" data-category="Hauling">Hauling</button>
+        <button class="chip" data-category="Jobs">Jobs</button>
+        <button class="chip" data-category="Events">Events</button>
+        <button class="chip" data-category="Business Services">Business Services</button>
       </div>
       <div class="listing-grid" id="listingGrid" aria-live="polite"></div>
       <p class="empty-state" id="emptyState" hidden>No matches yet. Try another search.</p>
+    </section>
+
+    <section class="opportunity-section" id="opportunities">
+      <div class="section-heading"><div><p class="eyebrow">More ways to earn</p><h2>Build your next opportunity on Flipora</h2></div></div>
+      <p class="section-intro">Flipora now goes beyond everyday items. Members can advertise specialized products and local opportunities across Georgia.</p>
+      <div class="opportunity-grid">
+        <article class="opportunity-card"><span class="opportunity-icon">🚚</span><h3>Hauling & truck services</h3><p>Offer dump-truck hauling, delivery and local transport services.</p><button class="opportunity-link" data-start-category="Hauling">List hauling service</button></article>
+        <article class="opportunity-card"><span class="opportunity-icon">🛠️</span><h3>Equipment marketplace</h3><p>Sell vehicles, trailers, lawn equipment, tools and heavy machinery.</p><button class="opportunity-link" data-start-category="Heavy Equipment">Sell equipment</button></article>
+        <article class="opportunity-card"><span class="opportunity-icon">💼</span><h3>Georgia job opportunities</h3><p>Let local employers post openings and help members discover work.</p><button class="opportunity-link" data-start-category="Jobs">Post a job</button></article>
+        <article class="opportunity-card"><span class="opportunity-icon">🎟️</span><h3>Events & nightlife</h3><p>Promote club events, entertainment services and local experiences.</p><button class="opportunity-link" data-start-category="Events">Promote an event</button></article>
+        <article class="opportunity-card"><span class="opportunity-icon">💻</span><h3>Business & AI services</h3><p>Offer websites, booking systems, marketing and business support.</p><button class="opportunity-link" data-start-category="Business Services">List a service</button></article>
+      </div>
+      <p class="opportunity-note">Flipora provides advertising and marketplace tools. Independent providers are responsible for required licenses, insurance and legal compliance.</p>
+    </section>
+
+    <section class="advertise-section" id="advertise">
+      <div class="advertise-copy">
+        <p class="eyebrow">Grow your business</p>
+        <h2>Add your ad to Flipora</h2>
+        <p>Reach local shoppers, sellers and business owners. Choose an advertising package and pay securely through Stripe.</p>
+        <ul><li>Business name and message</li><li>Website or contact link</li><li>Clear package duration</li></ul>
+      </div>
+      <div class="ad-package-grid" aria-label="Advertising packages">
+        <article class="ad-package"><span>Starter</span><h3>$19</h3><p>7-day marketplace advertisement</p><button class="button ad-checkout-button" data-ad-package="starter">Add your ad</button></article>
+        <article class="ad-package featured"><span>Best value</span><h3>$49</h3><p>30-day marketplace advertisement</p><button class="button ad-checkout-button" data-ad-package="business">Add your ad</button></article>
+        <article class="ad-package"><span>Featured</span><h3>$99</h3><p>30-day priority homepage advertisement</p><button class="button ad-checkout-button" data-ad-package="featured">Add your ad</button></article>
+      </div>
+      <p class="ad-disclosure">Advertisements are reviewed before publication. Prohibited, misleading or unlawful ads will not be accepted.</p>
     </section>
 
     <section class="steps" id="how-it-works">
@@ -85,9 +125,9 @@
   <dialog id="sellDialog">
     <form id="sellForm" method="dialog">
       <button class="dialog-close" type="button" aria-label="Close">×</button>
-      <p class="eyebrow">Create a listing</p><h2>What are you selling?</h2>
-      <label>Item name<input name="title" required maxlength="60" placeholder="e.g. Vintage desk lamp"></label>
-      <div class="form-row"><label>Price<input name="price" required min="0" step="0.01" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option><option>Other</option></select></label></div>
+      <p class="eyebrow">Create a listing</p><h2>What are you listing?</h2>
+      <label>Listing name<input name="title" required maxlength="60" placeholder="e.g. Dump-truck hauling service"></label>
+      <div class="form-row"><label>Price or starting rate<input name="price" required min="0" step="0.01" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option><option>Vehicles</option><option>Lawn &amp; Garden</option><option>Tools</option><option>Heavy Equipment</option><option>Hauling</option><option>Jobs</option><option>Events</option><option>Business Services</option><option>Other</option></select></label></div>
       <div class="form-row"><label>Condition<select name="condition"><option>New</option><option>Like new</option><option selected>Good</option><option>Fair</option></select></label><label>City<input name="city" required maxlength="60" placeholder="e.g. Columbus"></label></div>
       <label>Item photo<input id="photoInput" name="photos" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required></label>
       <div class="photo-preview" id="photoPreview" aria-live="polite"><p>Tap above to take photos or choose them from your gallery.</p></div>
@@ -120,6 +160,19 @@
       <button class="button button-secondary" id="signOutButton">Sign out</button>
     </div>
   </dialog>
+  <dialog id="adDialog">
+    <form id="adForm">
+      <button class="dialog-close" type="button" data-close-ad aria-label="Close">×</button>
+      <p class="eyebrow">Advertise on Flipora</p><h2>Tell us about your ad</h2>
+      <input name="packageId" type="hidden">
+      <label>Business or advertiser name<input name="businessName" required maxlength="60" placeholder="Your business name"></label>
+      <label>Ad message<textarea name="message" required rows="3" maxlength="180" placeholder="Tell Flipora members what you offer"></textarea></label>
+      <label>Website or contact link<input name="destinationUrl" required type="url" maxlength="300" placeholder="https://yourwebsite.com"></label>
+      <p class="form-note" id="adPackageSummary"></p>
+      <p class="form-note">Your ad will be reviewed before it appears. Payment does not guarantee approval of prohibited or misleading content.</p>
+      <button class="button" type="submit">Continue to secure payment</button>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
@@ -127,5 +180,6 @@
   <script src="enhancements.js?v=20260823-1515" defer></script>
   <script src="cover-photos.js?v=3" defer></script>
   <script src="listing-image-fixes.js?v=1" defer></script>
+  <script src="advertising.js?v=1" defer></script>
 </body>
 </html>
