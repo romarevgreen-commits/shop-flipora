@@ -54,7 +54,7 @@
 
 /* Place language controls directly beneath the sign-in controls. */
 .site-header{height:auto;min-height:98px}
-.header-controls{display:grid;justify-items:start;gap:5px}
+.header-controls{display:grid;justify-items:end;gap:5px}
 .header-controls .language-picker{
   position:static;
   z-index:auto;
