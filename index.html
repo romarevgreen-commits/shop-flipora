@@ -160,6 +160,19 @@
       <button class="button button-secondary" id="signOutButton">Sign out</button>
     </div>
   </dialog>
+  <dialog id="adDialog">
+    <form id="adForm">
+      <button class="dialog-close" type="button" data-close-ad aria-label="Close">×</button>
+      <p class="eyebrow">Advertise on Flipora</p><h2>Tell us about your ad</h2>
+      <input name="packageId" type="hidden">
+      <label>Business or advertiser name<input name="businessName" required maxlength="60" placeholder="Your business name"></label>
+      <label>Ad message<textarea name="message" required rows="3" maxlength="180" placeholder="Tell Flipora members what you offer"></textarea></label>
+      <label>Website or contact link<input name="destinationUrl" required type="url" maxlength="300" placeholder="https://yourwebsite.com"></label>
+      <p class="form-note" id="adPackageSummary"></p>
+      <p class="form-note">Your ad will be reviewed before it appears. Payment does not guarantee approval of prohibited or misleading content.</p>
+      <button class="button" type="submit">Continue to secure payment</button>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
