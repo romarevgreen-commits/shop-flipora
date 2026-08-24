@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#5b35f2">
   <title>Flipora Marketplace — Buy quick! Sell quicker!</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260824-listing-photo-fill-1">
+  <link rel="stylesheet" href="styles.css?v=20260824-language-under-signin-1">
   <link rel="stylesheet" href="opportunities.css?v=20260824-photo-cards-1">
   <link rel="stylesheet" href="advertising.css?v=20260824-package-details-1">
 </head>
@@ -23,24 +23,26 @@
       <a href="#how-it-works">How it works</a>
       <a href="/reviews.html">Reviews</a>
     </nav>
-    <div class="language-picker">
-      <label for="languageSelect"><span aria-hidden="true">🌐</span><span class="sr-only">Select language</span></label>
-      <select id="languageSelect" aria-label="Select website language">
-        <option value="en">English</option>
-        <option value="es">Español</option>
-        <option value="fr">Français</option>
-        <option value="pt">Português</option>
-        <option value="zh-CN">中文</option>
-        <option value="vi">Tiếng Việt</option>
-        <option value="ko">한국어</option>
-      </select>
-      <div id="google_translate_element" hidden></div>
-    </div>
-    <div class="header-actions">
-      <button class="text-button" id="signInButton">Sign in</button>
-      <button class="button button-small" id="createAccountButton">Create account</button>
-      <button class="account-button" id="accountButton" hidden><span id="accountInitial">F</span><span id="accountName">Account</span><span class="message-notification-pin" id="headerMessageBadge" hidden>0</span></button>
-      <button class="button button-small" data-open-sell>Sell an item</button>
+    <div class="header-controls">
+      <div class="header-actions">
+        <button class="text-button" id="signInButton">Sign in</button>
+        <button class="button button-small" id="createAccountButton">Create account</button>
+        <button class="account-button" id="accountButton" hidden><span id="accountInitial">F</span><span id="accountName">Account</span><span class="message-notification-pin" id="headerMessageBadge" hidden>0</span></button>
+        <button class="button button-small" data-open-sell>Sell an item</button>
+      </div>
+      <div class="language-picker">
+        <label for="languageSelect"><span aria-hidden="true">🌐</span><span class="sr-only">Select language</span></label>
+        <select id="languageSelect" aria-label="Select website language">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="pt">Português</option>
+          <option value="zh-CN">中文</option>
+          <option value="vi">Tiếng Việt</option>
+          <option value="ko">한국어</option>
+        </select>
+        <div id="google_translate_element" hidden></div>
+      </div>
     </div>
   </header>
 
