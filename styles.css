@@ -38,3 +38,7 @@
 @media(max-width:860px){.home-review-grid{grid-template-columns:1fr}.home-review-card>p{min-height:0}}
 
 .language-picker{display:flex;align-items:center;gap:6px;margin-left:auto;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#fff}.language-picker label{display:flex;align-items:center;font-size:1rem}.language-picker select{max-width:112px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:.82rem;font-weight:800;cursor:pointer}.goog-te-banner-frame,.skiptranslate iframe{display:none!important}body{top:0!important}.goog-logo-link,.goog-te-gadget span{display:none!important}@media(max-width:900px){.language-picker{order:3;margin:8px 0 0}.site-header{flex-wrap:wrap}.language-picker select{max-width:100px}}
+
+/* Keep the language selector in the upper-right corner. */
+.language-picker{position:fixed;top:14px;right:14px;z-index:1200;margin:0!important;box-shadow:0 8px 24px rgba(34,27,51,.14)}
+@media(max-width:900px){.language-picker{position:fixed;top:10px;right:10px;order:initial;margin:0!important;padding:6px 8px}.language-picker select{max-width:92px}}
