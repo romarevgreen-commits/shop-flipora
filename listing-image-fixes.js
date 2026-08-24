@@ -62,7 +62,6 @@
 
   const observer = new MutationObserver(() => repairAll());
   observer.observe(grid, { childList: true, subtree: true });
-}
 
   const photoViewer = document.createElement("dialog");
   photoViewer.className = "photo-lightbox";
