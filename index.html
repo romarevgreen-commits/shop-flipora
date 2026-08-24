@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#5b35f2">
   <title>Flipora Marketplace — Buy quick! Sell quicker!</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260824-location-1">
+  <link rel="stylesheet" href="styles.css?v=20260824-photo-source-1">
   <link rel="stylesheet" href="opportunities.css?v=20260824-1">
   <link rel="stylesheet" href="advertising.css?v=1">
 </head>
@@ -133,8 +133,13 @@
       <label>Listing name<input name="title" required maxlength="60" placeholder="e.g. Dump-truck hauling service"></label>
       <div class="form-row"><label>Price or starting rate<input name="price" required min="0" step="0.01" type="number" placeholder="25"></label><label>Category<select name="category"><option>Tech</option><option>Home</option><option>Style</option><option>Hobbies</option><option>Vehicles</option><option>Lawn &amp; Garden</option><option>Tools</option><option>Heavy Equipment</option><option>Hauling</option><option>Jobs</option><option>Events</option><option>Business Services</option><option>Other</option></select></label></div>
       <div class="form-row"><label>Condition<select name="condition"><option>New</option><option>Like new</option><option selected>Good</option><option>Fair</option></select></label><label>City<input name="city" required maxlength="60" placeholder="e.g. Columbus"></label></div>
-      <label>Item photo<input id="photoInput" name="photos" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required></label>
-      <div class="photo-preview" id="photoPreview" aria-live="polite"><p>Tap above to take photos or choose them from your gallery.</p></div>
+      <fieldset class="photo-source-fieldset">
+        <legend>Item photo</legend>
+        <div class="photo-source-buttons"><button class="button button-secondary" id="takePhotoButton" type="button">📷 Take a photo</button><button class="button button-secondary" id="choosePhotoButton" type="button">🖼️ Choose photo or file</button></div>
+        <input class="photo-source-input" id="cameraInput" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" tabindex="-1" aria-hidden="true">
+        <input class="photo-source-input" id="photoInput" name="photos" type="file" accept="image/jpeg,image/png,image/webp" tabindex="-1" aria-hidden="true">
+      </fieldset>
+      <div class="photo-preview" id="photoPreview" aria-live="polite"><p>Take a new photo or choose one from your gallery or files.</p></div>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
       <p class="form-note">Listings are connected to your Flipora account. Never share payment or private contact details in a public description.</p>
       <button class="button" value="default" type="submit">Publish listing</button>
@@ -186,8 +191,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
-  <script src="script.js?v=20260824-membership-1" defer></script>
-  <script src="enhancements.js?v=20260824-active-count-2" defer></script>
+  <script src="script.js?v=20260824-photo-source-1" defer></script>
+  <script src="enhancements.js?v=20260824-photo-source-1" defer></script>
   <script src="cover-photos.js?v=3" defer></script>
   <script src="listing-image-fixes.js?v=1" defer></script>
   <script src="advertising.js?v=1" defer></script>
