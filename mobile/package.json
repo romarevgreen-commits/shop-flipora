@@ -1,0 +1,25 @@
+{
+  "name": "flipora-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "doctor": "expo-doctor",
+    "build_android": "eas build --platform android",
+    "build_ios": "eas build --platform ios",
+    "build_all": "eas build --platform all"
+  },
+  "dependencies": {
+    "expo": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-webview": "13.16.1",
+    "expo-status-bar": "~57.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2"
+  }
+}
