@@ -17,6 +17,20 @@ const randomLetters = () => Array.from({ length: 8 }, () => String.fromCharCode(
 export default async (request: Request) => {
   if (request.method !== "POST") return json(405, { error: "Method not allowed" });
   try {
+    const authorization = request.headers.get("authorization");
+    if (!authorization?.startsWith("Bearer ")) return json(401, { error: "Sign in and become a member before advertising" });
+    const supabaseUrl = Netlify.env.get("SUPABASE_URL") || "https://opyzvpsbjqcdfeircica.supabase.co";
+    const publishableKey = Netlify.env.get("SUPABASE_PUBLISHABLE_KEY") || Netlify.env.get("SUPABASE_ANON_KEY") || "sb_publishable_dZXo7TQxYnqloxuvYJ5hxA_MMNdDOIK";
+    const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { Authorization: authorization, apikey: publishableKey } });
+    if (!userResponse.ok) return json(401, { error: "Invalid or expired session" });
+    const user = await userResponse.json();
+    const supabaseSecret = Netlify.env.get("SUPABASE_SECRET_KEY");
+    if (!supabaseSecret) throw new Error("Membership verification is not configured");
+    const profileResponse = await fetch(`${supabaseUrl}/rest/v1/profiles?id=eq.${encodeURIComponent(user.id)}&select=membership_active`, { headers: { apikey: supabaseSecret, Authorization: `Bearer ${supabaseSecret}` } });
+    if (!profileResponse.ok) throw new Error("Could not verify membership");
+    const profile = (await profileResponse.json())?.[0];
+    if (!profile?.membership_active) return json(403, { error: "Lifetime membership is required before you can advertise" });
+
     const secretKey = Netlify.env.get("STRIPE_SECRET_KEY");
     if (!secretKey) throw new Error("Advertising checkout is not configured");
 
@@ -39,6 +53,7 @@ export default async (request: Request) => {
     const siteUrl = Netlify.env.get("SITE_URL") || "https://shop-flipora.netlify.app";
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      customer_email: user.email,
       integration_identifier: `flipora_ads_${randomLetters()}`,
       line_items: [{
         quantity: 1,
@@ -50,7 +65,7 @@ export default async (request: Request) => {
       }],
       success_url: `${siteUrl}/?ad=success&session_id={CHECKOUT_SESSION_ID}#advertise`,
       cancel_url: `${siteUrl}/?ad=cancelled#advertise`,
-      metadata: { purchase_type: "advertisement", package_id: packageId, duration_days: String(selected.days), placement: selected.placement, business_name: cleanName, ad_message: cleanMessage, destination_url: cleanUrl }
+      metadata: { purchase_type: "advertisement", user_id: String(user.id), package_id: packageId, duration_days: String(selected.days), placement: selected.placement, business_name: cleanName, ad_message: cleanMessage, destination_url: cleanUrl }
     });
 
     return json(200, { url: session.url });
