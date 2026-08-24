@@ -164,6 +164,9 @@
       sellerItemsList.innerHTML = `<p class="seller-empty">${safe(error.message)}</p>`;
       return;
     }
+    const activeListingCount = (data || []).filter(item => item.status === 'active').length;
+    const listingCount = document.querySelector('#listingCount');
+    if (listingCount) listingCount.textContent = String(activeListingCount);
     if (!data?.length) {
       sellerItemsList.innerHTML = '<p class="seller-empty">You do not have any active or sold listings yet.</p>';
       return;
