@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Flipora",
+    "slug": "flipora-marketplace",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "flipora",
+    "splash": {
+      "backgroundColor": "#5b35f5",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.flipora.marketplace",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Flipora uses the camera so sellers can photograph items for listings.",
+        "NSPhotoLibraryUsageDescription": "Flipora uses your photo library so sellers can add item photos to listings.",
+        "NSPhotoLibraryAddUsageDescription": "Flipora can save marketplace images when you choose to download them.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.flipora.marketplace",
+      "adaptiveIcon": {
+        "backgroundColor": "#5b35f5"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "extra": {
+      "siteUrl": "https://shop-flipora.netlify.app"
+    }
+  }
+}
