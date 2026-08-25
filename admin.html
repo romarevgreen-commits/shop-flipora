@@ -33,7 +33,7 @@
     </section>
 
     <section id="adminDashboard" hidden>
-      <div class="dashboard-title"><div><p class="eyebrow">Website control center</p><h1>Flipora Administration</h1><p>romarevgreen@gmail.com · 478-336-3332</p></div><button id="refreshAdmin">Refresh details</button></div>
+      <div class="dashboard-title"><div><p class="eyebrow">Website control center</p><h1>Flipora Administration</h1><p>romarevgreen@gmail.com · 478-336-3332</p></div><div class="dashboard-actions"><button class="secondary" id="changeAdminPassword">Change password</button><button id="refreshAdmin">Refresh details</button></div></div>
       <div class="stats" id="adminStats"></div>
       <nav class="tabs" id="adminTabs"><button class="active" data-tab="listings">Listings</button><button data-tab="orders">Orders</button><button data-tab="members">Members</button><button data-tab="accounts">Accounts</button></nav>
       <div class="panel"><div class="panel-head"><h2 id="panelTitle">Listings</h2><input id="adminSearch" type="search" placeholder="Search details"></div><div class="table-wrap"><table><thead id="adminTableHead"></thead><tbody id="adminTableBody"></tbody></table></div></div>
@@ -42,6 +42,6 @@
   <div class="toast" id="adminToast" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js" defer></script>
-  <script src="admin.js?v=2" defer></script>
+  <script src="admin.js?v=3" defer></script>
 </body>
 </html>
