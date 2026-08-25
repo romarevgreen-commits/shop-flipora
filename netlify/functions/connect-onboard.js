@@ -8,11 +8,29 @@ exports.handler = async (event) => {
     if (!profiles?.[0]?.membership_active) throw new Error("Pay the $9.99 lifetime membership fee before connecting seller payouts");
     let accountId = profiles?.[0]?.stripe_account_id;
     if (!accountId) {
-      const account = await stripe().accounts.create({
-        type: "express",
-        email: user.email,
-        capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
-        business_profile: { url: siteUrl() },
+      const account = await stripe().v2.core.accounts.create({
+        contact_email: user.email,
+        display_name: user.user_metadata?.display_name || user.email.split("@")[0],
+        dashboard: "express",
+        defaults: {
+          responsibilities: {
+            fees_collector: "application",
+            losses_collector: "application"
+          },
+          profile: {
+            business_url: siteUrl(),
+            product_description: "Local marketplace seller receiving proceeds from Flipora sales"
+          }
+        },
+        configuration: {
+          recipient: {
+            capabilities: {
+              stripe_balance: {
+                stripe_transfers: { requested: true }
+              }
+            }
+          }
+        },
         metadata: { flipora_user_id: user.id }
       });
       accountId = account.id;
@@ -20,6 +38,16 @@ exports.handler = async (event) => {
         method: "PATCH",
         body: JSON.stringify({ stripe_account_id: accountId })
       });
+    } else {
+      const account = await stripe().v2.core.accounts.retrieve(accountId, {
+        include: ["configuration.recipient"]
+      });
+      const balanceCapabilities = account.configuration?.recipient?.capabilities?.stripe_balance;
+      const ready = balanceCapabilities?.stripe_transfers?.status === "active" && balanceCapabilities?.payouts?.status === "active";
+      if (ready) {
+        const login = await stripe().accounts.createLoginLink(accountId);
+        return json(200, { url: login.url, dashboard: true });
+      }
     }
     const link = await stripe().accountLinks.create({
       account: accountId,
@@ -34,3 +62,4 @@ exports.handler = async (event) => {
     return json(400, { error: error.message || "Could not start Stripe onboarding" });
   }
 };
+

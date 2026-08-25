@@ -1,21 +1,40 @@
-# Flipora Netlify package
+# Flipora Marketplace
 
-This is a deployable marketplace demonstration. Drag the entire folder into Netlify's manual deploy area.
+Flipora is a Netlify-hosted marketplace with Supabase authentication, listings and storage plus Stripe Checkout and Stripe Connect seller payouts.
 
 ## Included
 
 - Responsive public marketplace
-- Approved sample product
-- Seller listing form
-- Admin approval and rejection workflow
-- Free Netlify-compatible static hosting
+- Supabase member accounts, listings, images and order records
+- $9.99 lifetime seller membership through Stripe Checkout
+- Stripe-hosted seller verification and Express payout dashboard
+- Buyer Checkout with a 12% Flipora marketplace fee and an 88% seller transfer
+- Signature-verified payment, refund and dispute webhooks
+- Administrator fulfillment and refund controls
 
-## Important production work
+## Required Netlify environment variables
 
-The demonstration stores listings only in the visitor's browser. Before taking real sellers or payments, connect a production database, authentication, image storage, and server-side Stripe Connect/Checkout endpoints. Never place a Stripe secret key in `app.js` or any browser-visible file.
+- `STRIPE_SECRET_KEY` — use a restricted server-side key with only the permissions this integration needs
+- `STRIPE_WEBHOOK_SECRET` — signing secret for `https://shop-flipora.netlify.app/.netlify/functions/stripe-webhook`
+- `SUPABASE_SECRET_KEY` — server-only Supabase secret key
+- `SUPABASE_URL` — Flipora Supabase project URL
+- `SUPABASE_PUBLISHABLE_KEY` — public browser key
+- `SITE_URL` — `https://shop-flipora.netlify.app`
+
+Never commit Stripe or Supabase secret keys or expose them in browser code.
+
+## Database setup
+
+Apply the SQL files in the Supabase SQL editor. `stripe-schema.sql` adds protected order and seller-payment fields plus an atomic purchase-completion function that prevents two buyers from purchasing the same listing.
+
+## Stripe setup
+
+1. Configure Flipora as a Stripe marketplace.
+2. Add the webhook endpoint above and subscribe it to Checkout completion/failure/expiration, refund and dispute events.
+3. Test seller onboarding, a successful item purchase, a duplicate purchase, a refund and a dispute in Stripe test mode.
+4. Switch Netlify to live restricted keys only after the test checklist passes.
 
 ## Deploy
 
-1. In Netlify, choose **Add new project → Deploy manually**.
-2. Upload the `flipora-netlify` folder or the provided ZIP file.
-3. In **Domain management**, rename the generated `*.netlify.app` address.
+The production site deploys automatically from the `main` branch of `romarevgreen-commits/shop-flipora`.
+

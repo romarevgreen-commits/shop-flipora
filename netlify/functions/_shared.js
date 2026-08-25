@@ -9,7 +9,15 @@ const required = (name) => {
   return value;
 };
 
-const stripe = () => new Stripe(required("STRIPE_SECRET_KEY"));
+let stripeClient;
+const stripe = () => {
+  if (!stripeClient) {
+    stripeClient = new Stripe(required("STRIPE_SECRET_KEY"), {
+      apiVersion: "2026-07-29.dahlia"
+    });
+  }
+  return stripeClient;
+};
 const supabaseUrl = () => process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
 const supabasePublishable = () => process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
 const supabaseSecret = () => required("SUPABASE_SECRET_KEY");
@@ -67,3 +75,4 @@ async function rest(path, options = {}) {
 }
 
 module.exports = { stripe, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable };
+
