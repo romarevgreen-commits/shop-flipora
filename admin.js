@@ -3,6 +3,10 @@ const db = window.supabase.createClient(window.FLIPORA_CONFIG.supabaseUrl, windo
 const loginSection = document.querySelector('#adminLogin');
 const dashboard = document.querySelector('#adminDashboard');
 const message = document.querySelector('#adminMessage');
+const loginForm = document.querySelector('#adminLoginForm');
+const passwordUpdateForm = document.querySelector('#adminPasswordUpdateForm');
+const passwordUpdateMessage = document.querySelector('#adminPasswordMessage');
+let passwordRecoveryMode = location.hash.includes('type=recovery');
 const tableHead = document.querySelector('#adminTableHead');
 const tableBody = document.querySelector('#adminTableBody');
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
@@ -12,6 +16,15 @@ let activeTab = 'listings';
 function toast(text) { const el = document.querySelector('#adminToast'); el.textContent = text; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3000); }
 function money(cents, currency = 'usd') { return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase() }).format(Number(cents || 0) / 100); }
 function date(value) { return value ? new Date(value).toLocaleDateString() : '—'; }
+function showPasswordRecovery() {
+  passwordRecoveryMode = true;
+  loginSection.hidden = false;
+  dashboard.hidden = true;
+  loginForm.hidden = true;
+  passwordUpdateForm.hidden = false;
+  document.querySelector('#adminSignOut').hidden = true;
+  passwordUpdateMessage.textContent = '';
+}
 async function adminRequest(options = {}) {
   const { data } = await db.auth.getSession();
   if (!data.session) throw new Error('Administrator sign in required');
@@ -40,11 +53,47 @@ function renderTable() {
 }
 document.querySelector('#adminLoginForm').addEventListener('submit', async event => { event.preventDefault(); message.textContent = ''; const button = event.currentTarget.querySelector('[type="submit"]'); button.disabled = true; try { const password = new FormData(event.currentTarget).get('password'); const { error } = await db.auth.signInWithPassword({ email: ADMIN_EMAIL, password }); if (error) throw error; await loadDashboard(); } catch (error) { message.textContent = error.message; } finally { button.disabled = false; } });
 document.querySelector('#createAdminAccount').addEventListener('click', async () => { const password = document.querySelector('#adminLoginForm').elements.password.value; if (password.length < 8) { message.textContent = 'Enter a password with at least 8 characters first.'; return; } message.textContent = 'Creating administrator account…'; const { data, error } = await db.auth.signUp({ email: ADMIN_EMAIL, password, options: { data: { display_name: 'Romare Green', phone: '478-336-3332' }, emailRedirectTo: `${location.origin}/admin.html` } }); if (error) { message.textContent = error.message; return; } message.textContent = data.session ? 'Account created. Opening dashboard…' : 'Account created. Check your email to verify it, then return here and sign in.'; if (data.session) loadDashboard().catch(error => message.textContent = error.message); });
+passwordUpdateForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  passwordUpdateMessage.textContent = '';
+  const form = new FormData(event.currentTarget);
+  const password = String(form.get('newPassword') || '');
+  const confirmation = String(form.get('confirmPassword') || '');
+  if (password.length < 8) { passwordUpdateMessage.textContent = 'Use at least 8 characters.'; return; }
+  if (password !== confirmation) { passwordUpdateMessage.textContent = 'The passwords do not match.'; return; }
+  const button = event.currentTarget.querySelector('[type="submit"]');
+  button.disabled = true;
+  try {
+    const { error } = await db.auth.updateUser({ password });
+    if (error) throw error;
+    passwordRecoveryMode = false;
+    history.replaceState({}, document.title, location.pathname);
+    passwordUpdateForm.reset();
+    passwordUpdateForm.hidden = true;
+    loginForm.hidden = false;
+    message.textContent = 'Password updated successfully.';
+    await loadDashboard();
+  } catch (error) {
+    passwordUpdateMessage.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
+db.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY' && session?.user?.email?.toLowerCase() === ADMIN_EMAIL) showPasswordRecovery();
+});
+
+document.querySelector('#changeAdminPassword').addEventListener('click', showPasswordRecovery);
 document.querySelector('#resetAdminPassword').addEventListener('click', async () => { const { error } = await db.auth.resetPasswordForEmail(ADMIN_EMAIL, { redirectTo: `${location.origin}/admin.html` }); message.textContent = error ? error.message : 'Password reset email sent.'; });
 document.querySelector('#adminSignOut').addEventListener('click', async () => { await db.auth.signOut(); dashboard.hidden = true; loginSection.hidden = false; document.querySelector('#adminSignOut').hidden = true; });
 document.querySelector('#refreshAdmin').addEventListener('click', () => loadDashboard().then(() => toast('Administration details refreshed.')).catch(error => toast(error.message)));
 document.querySelector('#adminTabs').addEventListener('click', event => { const button = event.target.closest('[data-tab]'); if (!button) return; activeTab = button.dataset.tab; document.querySelectorAll('[data-tab]').forEach(item => item.classList.toggle('active', item === button)); document.querySelector('#adminSearch').value = ''; renderTable(); });
 document.querySelector('#adminSearch').addEventListener('input', renderTable);
 tableBody.addEventListener('change', async event => { const select = event.target.closest('[data-admin-type]'); if (!select) return; select.disabled = true; try { const body = select.dataset.adminType === 'membership' ? { type: 'membership', id: select.dataset.adminId, active: select.value === 'true' } : { type: select.dataset.adminType, id: select.dataset.adminId, status: select.value }; await adminRequest({ method: 'PATCH', body: JSON.stringify(body) }); await loadDashboard(); toast('Website details updated.'); } catch (error) { toast(error.message); await loadDashboard(); } finally { select.disabled = false; } });
-db.auth.getSession().then(({ data }) => { if (data.session?.user?.email?.toLowerCase() === ADMIN_EMAIL) loadDashboard().catch(error => message.textContent = error.message); });
+db.auth.getSession().then(({ data }) => {
+  if (data.session?.user?.email?.toLowerCase() !== ADMIN_EMAIL) return;
+  if (passwordRecoveryMode) showPasswordRecovery();
+  else loadDashboard().catch(error => message.textContent = error.message);
+});
 
