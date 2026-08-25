@@ -19,6 +19,7 @@
 .account-button{position:relative}
 .message-notification-pin{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#e11900;color:#fff;font-size:.68rem;font-weight:900;line-height:1;box-shadow:0 0 0 3px #fff}
 .account-button .message-notification-pin{position:absolute;right:-8px;top:-9px}
+.account-mode-card{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;border:1px solid #d8d0ff;border-radius:14px;background:#f5f2ff}.account-mode-card>div{display:grid;gap:4px}.account-mode-card span{font-size:.75rem;line-height:1.4;color:var(--muted)}
 .message-seller-button{width:100%;margin-top:8px}
 .seller-messages-card{border:1px solid var(--line);border-radius:16px;padding:15px;display:grid;gap:12px;background:#fff}
 .seller-messages-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -71,3 +72,4 @@
   .site-header{min-height:86px;height:auto;padding-top:8px;padding-bottom:8px}
   .header-controls{gap:4px}
 }
+
