@@ -1,8 +1,8 @@
-const { json, authenticatedUser, rest, supabaseUrl, supabaseSecret } = require('./_shared');
+const { stripe, json, authenticatedUser, rest, supabaseUrl, supabaseSecret } = require('./_shared');
 
 const ADMIN_EMAIL = 'romarevgreen@gmail.com';
 const allowedListingStatuses = new Set(['active', 'sold', 'hidden']);
-const allowedOrderStatuses = new Set(['pending', 'paid', 'shipped', 'delivered', 'completed', 'refunded', 'disputed']);
+const allowedOrderStatuses = new Set(['shipped', 'delivered', 'completed', 'refunded', 'cancelled']);
 
 async function requireAdmin(event) {
   const user = await authenticatedUser(event);
@@ -46,6 +46,21 @@ exports.handler = async event => {
     }
     if (body.type === 'order') {
       if (!allowedOrderStatuses.has(body.status)) return json(400, { error: 'Invalid order status' });
+      if (body.status === 'refunded') {
+        const orders = await rest(`orders?id=eq.${encodeURIComponent(body.id)}&select=id,status,stripe_payment_intent_id`);
+        const order = orders?.[0];
+        if (!order?.stripe_payment_intent_id) return json(400, { error: 'This order has no completed Stripe payment' });
+        if (order.status !== 'refunded') {
+          await stripe().refunds.create({
+            payment_intent: order.stripe_payment_intent_id,
+            reverse_transfer: true,
+            refund_application_fee: true,
+            metadata: { flipora_order_id: String(order.id), initiated_by: admin.id }
+          }, {
+            idempotencyKey: `flipora-admin-refund-${order.id}`
+          });
+        }
+      }
       const rows = await rest(`orders?id=eq.${encodeURIComponent(body.id)}`, { method: 'PATCH', body: JSON.stringify({ status: body.status }) });
       return json(200, { item: rows?.[0] || null });
     }
@@ -59,3 +74,4 @@ exports.handler = async event => {
     return json(denied ? 403 : 500, { error: error.message || 'Administrator request failed' });
   }
 };
+
