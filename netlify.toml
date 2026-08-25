@@ -13,6 +13,7 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://translate.google.com https://translate.googleapis.com; connect-src 'self' https://opyzvpsbjqcdfeircica.supabase.co https://translate.googleapis.com https://*.stripe.com; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https://translate.googleapis.com; frame-src https://*.stripe.com https://*.netlify.com https://translate.google.com; font-src 'self' data:; form-action 'self' https://*.stripe.com; base-uri 'self'; object-src 'none'"
 
 [[redirects]]
   from = "/*"
