@@ -11,6 +11,7 @@ exports.handler = async (event) => {
       const account = await stripe().v2.core.accounts.create({
         contact_email: user.email,
         display_name: user.user_metadata?.display_name || user.email.split("@")[0],
+        identity: { country: "us" },
         dashboard: "express",
         defaults: {
           responsibilities: {
@@ -62,4 +63,3 @@ exports.handler = async (event) => {
     return json(400, { error: error.message || "Could not start Stripe onboarding" });
   }
 };
-
