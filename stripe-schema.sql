@@ -22,10 +22,18 @@ create table if not exists public.orders (
   amount_total integer not null check (amount_total >= 0),
   platform_fee integer not null check (platform_fee >= 0),
   currency text not null default 'usd',
-  status text not null default 'pending' check (status in ('pending','paid','refunded','cancelled')),
+  status text not null default 'pending' check (status in ('pending','paid','shipped','delivered','completed','refunded','cancelled','disputed')),
   created_at timestamptz not null default now(),
-  paid_at timestamptz
+  paid_at timestamptz,
+  refunded_at timestamptz,
+  disputed_at timestamptz
 );
+
+alter table public.orders add column if not exists refunded_at timestamptz;
+alter table public.orders add column if not exists disputed_at timestamptz;
+alter table public.orders drop constraint if exists orders_status_check;
+alter table public.orders add constraint orders_status_check
+  check (status in ('pending','paid','shipped','delivered','completed','refunded','cancelled','disputed'));
 
 alter table public.orders enable row level security;
 revoke all on public.orders from anon, authenticated;
@@ -37,3 +45,58 @@ create policy "Buyers and sellers read their orders" on public.orders
   using ((select auth.uid()) = buyer_id or (select auth.uid()) = seller_id);
 
 -- Payment writes are server-only through Netlify functions using the Supabase secret key.
+
+-- Atomically claim a listing for the first completed checkout. This prevents
+-- two simultaneous Checkout Sessions from both purchasing the same item.
+create or replace function public.complete_flipora_order(
+  p_checkout_session_id text,
+  p_payment_intent_id text,
+  p_paid_time timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  selected_order public.orders%rowtype;
+  selected_listing_status text;
+begin
+  select * into selected_order
+  from public.orders
+  where stripe_checkout_session_id = p_checkout_session_id
+  for update;
+
+  if not found then
+    raise exception 'Order not found for checkout session';
+  end if;
+
+  if selected_order.status in ('paid','shipped','delivered','completed','disputed') then
+    return true;
+  end if;
+
+  select status into selected_listing_status
+  from public.listings
+  where id = selected_order.listing_id
+  for update;
+
+  if selected_listing_status <> 'active' then
+    update public.orders set status = 'cancelled'
+    where id = selected_order.id;
+    return false;
+  end if;
+
+  update public.orders
+  set status = 'paid', stripe_payment_intent_id = p_payment_intent_id, paid_at = p_paid_time
+  where id = selected_order.id;
+
+  update public.listings set status = 'sold'
+  where id = selected_order.listing_id;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.complete_flipora_order(text, text, timestamptz) from public, anon, authenticated;
+grant execute on function public.complete_flipora_order(text, text, timestamptz) to service_role;
+
