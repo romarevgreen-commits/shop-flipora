@@ -84,6 +84,7 @@ db.auth.onAuthStateChange((event, session) => {
   if (event === 'PASSWORD_RECOVERY' && session?.user?.email?.toLowerCase() === ADMIN_EMAIL) showPasswordRecovery();
 });
 
+document.querySelector('#changeAdminPassword').addEventListener('click', showPasswordRecovery);
 document.querySelector('#resetAdminPassword').addEventListener('click', async () => { const { error } = await db.auth.resetPasswordForEmail(ADMIN_EMAIL, { redirectTo: `${location.origin}/admin.html` }); message.textContent = error ? error.message : 'Password reset email sent.'; });
 document.querySelector('#adminSignOut').addEventListener('click', async () => { await db.auth.signOut(); dashboard.hidden = true; loginSection.hidden = false; document.querySelector('#adminSignOut').hidden = true; });
 document.querySelector('#refreshAdmin').addEventListener('click', () => loadDashboard().then(() => toast('Administration details refreshed.')).catch(error => toast(error.message)));
