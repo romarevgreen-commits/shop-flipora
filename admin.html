@@ -22,6 +22,14 @@
         <button class="secondary" id="createAdminAccount" type="button">Create administrator account</button>
         <button class="link-button" id="resetAdminPassword" type="button">Forgot password?</button>
       </form>
+      <form id="adminPasswordUpdateForm" hidden>
+        <h2>Create a new password</h2>
+        <p>Choose a new password for the Flipora administrator account.</p>
+        <label>New password<input name="newPassword" type="password" minlength="8" required autocomplete="new-password"></label>
+        <label>Confirm new password<input name="confirmPassword" type="password" minlength="8" required autocomplete="new-password"></label>
+        <p id="adminPasswordMessage" class="message" aria-live="polite"></p>
+        <button type="submit">Save new password</button>
+      </form>
     </section>
 
     <section id="adminDashboard" hidden>
@@ -34,6 +42,6 @@
   <div class="toast" id="adminToast" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js" defer></script>
-  <script src="admin.js?v=1" defer></script>
+  <script src="admin.js?v=2" defer></script>
 </body>
 </html>
