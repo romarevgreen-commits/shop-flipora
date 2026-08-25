@@ -1,4 +1,7 @@
-const { stripe, json, authenticatedUser, userRest, siteUrl } = require("./_shared");
+const { stripe, json, authenticatedUser, rest, siteUrl } = require("./_shared");
+
+const PLATFORM_FEE_RATE = 0.12;
+const INTEGRATION_IDENTIFIER = "flipora_marketplace_qkzmpvha";
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
@@ -6,28 +9,34 @@ exports.handler = async (event) => {
     const buyer = await authenticatedUser(event);
     const { listingId } = JSON.parse(event.body || "{}");
 
-    const rows = await userRest(
+    const rows = await rest(
       `listings?id=eq.${encodeURIComponent(listingId)}&status=eq.active&select=id,title,price,seller_id`,
-      event
     );
     const listing = rows?.[0];
     if (!listing) throw new Error("Listing is unavailable");
     if (listing.seller_id === buyer.id) throw new Error("You cannot buy your own listing");
 
-    const sellers = await userRest(
-      `profiles?id=eq.${encodeURIComponent(listing.seller_id)}&select=stripe_account_id,stripe_onboarding_complete,membership_active`,
-      event
+    const sellers = await rest(
+      `profiles?id=eq.${encodeURIComponent(listing.seller_id)}&select=stripe_account_id,membership_active`
     );
     const seller = sellers?.[0];
     if (!seller?.membership_active) throw new Error("Seller membership is not active");
-    if (!seller?.stripe_account_id || !seller.stripe_onboarding_complete) {
+    if (!seller?.stripe_account_id) throw new Error("Seller payouts are not ready");
+
+    const account = await stripe().v2.core.accounts.retrieve(seller.stripe_account_id, {
+      include: ["configuration.recipient"]
+    });
+    const balanceCapabilities = account.configuration?.recipient?.capabilities?.stripe_balance;
+    if (balanceCapabilities?.stripe_transfers?.status !== "active" || balanceCapabilities?.payouts?.status !== "active") {
       throw new Error("Seller payouts are not ready");
     }
 
     const amount = Math.round(Number(listing.price) * 100);
-    const fee = Math.round(amount * 0.10);
+    if (!Number.isSafeInteger(amount) || amount < 50) throw new Error("Listing price is invalid");
+    const fee = Math.round(amount * PLATFORM_FEE_RATE);
     const session = await stripe().checkout.sessions.create({
       mode: "payment",
+      integration_identifier: INTEGRATION_IDENTIFIER,
       customer_email: buyer.email,
       line_items: [{
         quantity: 1,
@@ -51,11 +60,14 @@ exports.handler = async (event) => {
       metadata: {
         listing_id: String(listing.id),
         buyer_id: buyer.id,
-        seller_id: listing.seller_id
+        seller_id: listing.seller_id,
+        platform_fee_percent: "12"
       }
+    }, {
+      idempotencyKey: `flipora-checkout-${buyer.id}-${listing.id}-${Math.floor(Date.now() / 60000)}`
     });
 
-    await userRest("orders", event, {
+    await rest("orders", {
       method: "POST",
       body: JSON.stringify({
         listing_id: listing.id,
@@ -74,3 +86,4 @@ exports.handler = async (event) => {
     return json(400, { error: error.message || "Could not start checkout" });
   }
 };
+
