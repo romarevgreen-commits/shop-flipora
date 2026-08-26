@@ -8,13 +8,18 @@ values (
   'seller-videos',
   'seller-videos',
   true,
-  26214400,
-  array['video/mp4','video/webm','video/quicktime']
+  104857600,
+  array['video/mp4','video/webm','video/quicktime','video/x-m4v','video/3gpp']
 )
 on conflict (id) do update
 set public = excluded.public,
     file_size_limit = excluded.file_size_limit,
     allowed_mime_types = excluded.allowed_mime_types;
+
+-- stripe-schema.sql intentionally limits seller-editable profile columns.
+-- Include the video pointer so an authenticated seller can persist their own
+-- upload; the profile UPDATE policy below still restricts writes to auth.uid().
+grant update (profile_video_url) on table public.profiles to authenticated;
 
 drop policy if exists "Seller videos are publicly readable" on storage.objects;
 create policy "Seller videos are publicly readable"
@@ -48,3 +53,4 @@ using (
   bucket_id = 'seller-videos'
   and (storage.foldername(name))[1] = (select auth.uid()::text)
 );
+
