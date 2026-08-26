@@ -73,7 +73,8 @@
   const loadMemberTools = async () => {
     try {
       await loadScript('membership-access.js?v=20260826-buyer-seller-2', 'data-flipora-member-access');
-      await loadScript('orders-dashboard.js?v=20260826-shipping-1', 'data-flipora-orders-dashboard');
+      await loadScript('orders-dashboard.js?v=20260826-item-number-shipping-2', 'data-flipora-orders-dashboard');
+      await loadScript('seller-activity.js?v=20260826-seller-chart-1', 'data-flipora-seller-activity');
     } catch (error) {
       console.error('Could not load Flipora member tools', error);
     }
