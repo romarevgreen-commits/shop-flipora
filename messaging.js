@@ -130,6 +130,8 @@
   });
 
   document.querySelector('#accountButton').addEventListener('click', () => window.setTimeout(refreshSellerMessages, 400));
+  window.addEventListener('flipora:membership-status', refreshSellerMessages);
   db.auth.onAuthStateChange(() => window.setTimeout(refreshSellerMessages, 700));
   window.setInterval(() => { if (currentUser) refreshSellerMessages(); }, 60000);
 })();
+
