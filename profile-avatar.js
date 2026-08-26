@@ -17,6 +17,14 @@
     }
   }
 
+  async function ensureProfile() {
+    if (!currentUser) return;
+    const displayName = currentUser.user_metadata?.display_name || currentUser.email?.split('@')[0] || 'Flipora seller';
+    const city = currentUser.user_metadata?.seller_location || '';
+    const { error } = await db.from('profiles').upsert({ id: currentUser.id, display_name: displayName, city }, { onConflict: 'id', ignoreDuplicates: true });
+    if (error) throw error;
+  }
+
   async function loadAvatar() {
     if (!currentUser) return showAvatar('', 'F');
     const { data } = await db.from('profiles').select('avatar_url,display_name').eq('id', currentUser.id).maybeSingle();
@@ -34,6 +42,7 @@
     chooseButton.disabled = true;
     chooseButton.textContent = 'Uploading…';
     try {
+      await ensureProfile();
       const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
       const path = `${currentUser.id}/avatar.${extension}`;
       const { error: uploadError } = await db.storage.from('profile-images').upload(path, file, {
@@ -43,8 +52,9 @@
       });
       if (uploadError) throw uploadError;
       const publicUrl = db.storage.from('profile-images').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
-      const { error: profileError } = await db.from('profiles').update({ avatar_url: publicUrl }).eq('id', currentUser.id);
+      const { data: updated, error: profileError } = await db.from('profiles').update({ avatar_url: publicUrl }).eq('id', currentUser.id).select('id').maybeSingle();
       if (profileError) throw profileError;
+      if (!updated) throw new Error('Could not save your profile picture to your account.');
       showAvatar(publicUrl, currentUser.email);
       showToast('Your seller profile picture was updated.');
     } catch (error) {
@@ -82,13 +92,13 @@
     section.innerHTML = `
       <div><h3>Seller profile video</h3><p>Add a short video buyers can watch on your seller profile.</p></div>
       <video id="sellerVideoPreview" class="seller-video-preview" controls playsinline hidden></video>
-      <input id="sellerVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime" hidden>
+      <input id="sellerVideoInput" type="file" accept="video/*,.mp4,.mov,.webm,.m4v,.3gp" hidden>
       <div class="seller-video-actions">
         <button class="button button-secondary" id="chooseSellerVideo" type="button">Choose 15-second video</button>
         <button class="button" id="uploadSellerVideo" type="button" disabled>Publish video</button>
         <button class="seller-video-remove" id="removeSellerVideo" type="button" hidden>Remove video</button>
       </div>
-      <p class="seller-video-note">Maximum length: 15 seconds · Maximum file size: 25 MB · MP4, WebM, or MOV</p>
+      <p class="seller-video-note">Maximum length: 15 seconds · Maximum file size: 100 MB · MP4, MOV, WebM, M4V, or 3GP</p>
     `;
     accountPanel.insertBefore(section, signOutButton);
     sellerVideoInput = section.querySelector('#sellerVideoInput');
@@ -104,21 +114,27 @@
       selectedVideoFile = null;
       sellerVideoUploadButton.disabled = true;
       if (!file) return;
-      if (!['video/mp4','video/webm','video/quicktime'].includes(file.type)) {
+
+      const extensionFromName = String(file.name || '').split('.').pop().toLowerCase();
+      const allowedExtensions = ['mp4','mov','webm','m4v','3gp'];
+      const allowedTypes = ['video/mp4','video/webm','video/quicktime','video/x-m4v','video/3gpp','application/octet-stream',''];
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extensionFromName)) {
         sellerVideoInput.value = '';
-        return showToast('Choose an MP4, WebM, or MOV video.');
+        return showToast('Choose an MP4, MOV, WebM, M4V, or 3GP video.');
       }
-      if (file.size > 25 * 1024 * 1024) {
+      if (file.size > 100 * 1024 * 1024) {
         sellerVideoInput.value = '';
-        return showToast('Seller videos must be smaller than 25 MB.');
+        return showToast('Seller videos must be smaller than 100 MB.');
       }
+
       const objectUrl = URL.createObjectURL(file);
       const probe = document.createElement('video');
       probe.preload = 'metadata';
+      probe.playsInline = true;
       probe.src = objectUrl;
       probe.onloadedmetadata = () => {
         const duration = probe.duration;
-        if (!Number.isFinite(duration) || duration > 15.25) {
+        if (!Number.isFinite(duration) || duration > 15.5) {
           URL.revokeObjectURL(objectUrl);
           sellerVideoInput.value = '';
           sellerVideoPreview.hidden = true;
@@ -137,38 +153,60 @@
       probe.onerror = () => {
         URL.revokeObjectURL(objectUrl);
         sellerVideoInput.value = '';
-        showToast('Could not read that video. Try another file.');
+        showToast('Could not read that video. Try recording or exporting it as MP4.');
       };
     });
 
     sellerVideoUploadButton.addEventListener('click', async () => {
-      if (!currentUser || !selectedVideoFile) return;
+      if (!currentUser) return showToast('Sign in before publishing a seller video.');
+      if (!selectedVideoFile) return showToast('Choose a video first.');
       sellerVideoUploadButton.disabled = true;
       const originalText = sellerVideoUploadButton.textContent;
       sellerVideoUploadButton.textContent = 'Publishing…';
       try {
-        const extension = selectedVideoFile.type === 'video/webm' ? 'webm' : selectedVideoFile.type === 'video/quicktime' ? 'mov' : 'mp4';
+        await ensureProfile();
+        const extensionFromName = String(selectedVideoFile.name || '').split('.').pop().toLowerCase();
+        const extension = ['mp4','mov','webm','m4v','3gp'].includes(extensionFromName)
+          ? extensionFromName
+          : selectedVideoFile.type === 'video/webm' ? 'webm'
+          : selectedVideoFile.type === 'video/quicktime' ? 'mov'
+          : selectedVideoFile.type === 'video/x-m4v' ? 'm4v'
+          : selectedVideoFile.type === 'video/3gpp' ? '3gp'
+          : 'mp4';
+        const contentType = selectedVideoFile.type && selectedVideoFile.type !== 'application/octet-stream'
+          ? selectedVideoFile.type
+          : extension === 'mov' ? 'video/quicktime'
+          : extension === 'webm' ? 'video/webm'
+          : extension === 'm4v' ? 'video/x-m4v'
+          : extension === '3gp' ? 'video/3gpp'
+          : 'video/mp4';
         const path = `${currentUser.id}/profile-video.${extension}`;
         const { error: uploadError } = await db.storage.from('seller-videos').upload(path, selectedVideoFile, {
           cacheControl: '3600',
-          contentType: selectedVideoFile.type,
+          contentType,
           upsert: true
         });
         if (uploadError) throw uploadError;
         const publicUrl = db.storage.from('seller-videos').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
-        const { error: profileError } = await db.from('profiles').update({ profile_video_url: publicUrl }).eq('id', currentUser.id);
+        const { data: updated, error: profileError } = await db.from('profiles').update({ profile_video_url: publicUrl }).eq('id', currentUser.id).select('id').maybeSingle();
         if (profileError) throw profileError;
+        if (!updated) throw new Error('The video uploaded, but Flipora could not attach it to your seller account.');
+        if (selectedPreviewUrl) {
+          URL.revokeObjectURL(selectedPreviewUrl);
+          selectedPreviewUrl = '';
+        }
         sellerVideoPreview.src = publicUrl;
         sellerVideoPreview.hidden = false;
         sellerVideoRemoveButton.hidden = false;
         selectedVideoFile = null;
         sellerVideoInput.value = '';
-        showToast('Your 15-second seller video is now visible to buyers.');
+        showToast('Your seller video is saved to your account and visible to buyers.');
       } catch (error) {
         showToast(error.message || 'Could not publish seller video.');
+        sellerVideoUploadButton.disabled = false;
       } finally {
         sellerVideoUploadButton.textContent = originalText;
-        sellerVideoUploadButton.disabled = true;
+        if (!selectedVideoFile) sellerVideoUploadButton.disabled = true;
       }
     });
 
@@ -183,7 +221,8 @@
           const index = videoUrl.indexOf(marker);
           if (index !== -1) {
             const path = decodeURIComponent(videoUrl.slice(index + marker.length).split('?')[0]);
-            await db.storage.from('seller-videos').remove([path]);
+            const { error: removeError } = await db.storage.from('seller-videos').remove([path]);
+            if (removeError) throw removeError;
           }
         }
         const { error } = await db.from('profiles').update({ profile_video_url: null }).eq('id', currentUser.id);
@@ -203,12 +242,18 @@
 
   async function loadSellerVideo() {
     if (!currentUser || !sellerVideoPreview) return;
-    const { data } = await db.from('profiles').select('profile_video_url').eq('id', currentUser.id).maybeSingle();
-    const url = data?.profile_video_url || '';
-    sellerVideoPreview.hidden = !url;
-    sellerVideoRemoveButton.hidden = !url;
-    if (url) sellerVideoPreview.src = url;
-    else sellerVideoPreview.removeAttribute('src');
+    try {
+      await ensureProfile();
+      const { data, error } = await db.from('profiles').select('profile_video_url').eq('id', currentUser.id).maybeSingle();
+      if (error) throw error;
+      const url = data?.profile_video_url || '';
+      sellerVideoPreview.hidden = !url;
+      sellerVideoRemoveButton.hidden = !url;
+      if (url) sellerVideoPreview.src = url;
+      else sellerVideoPreview.removeAttribute('src');
+    } catch (error) {
+      console.error('Could not load seller video', error);
+    }
   }
 
   document.querySelector('#accountButton').addEventListener('click', () => {
