@@ -35,6 +35,7 @@ export default async (request: Request) => {
       mode: "payment",
       customer_email: user.email,
       integration_identifier: `flipora_member_${randomLetters()}`,
+      payment_intent_data: { receipt_email: user.email },
       line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: 999, product_data: { name: "Flipora Lifetime Seller Membership", description: "One-time membership required to connect seller payouts and receive earnings" } } }],
       success_url: `${siteUrl}/?membership=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/?membership=cancelled`,
@@ -48,3 +49,4 @@ export default async (request: Request) => {
 };
 
 export const config: Config = { method: ["POST"] };
+
