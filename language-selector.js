@@ -51,14 +51,34 @@
 })();
 
 (() => {
-  const loadMemberAccess = () => {
-    if (document.querySelector('script[data-flipora-member-access]')) return;
-    const script = document.createElement('script');
-    script.src = 'membership-access.js?v=20260826-buy-sell-member-2';
-    script.async = false;
-    script.dataset.fliporaMemberAccess = 'true';
-    document.body.appendChild(script);
+  function loadScript(src, attribute) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[${attribute}]`);
+      if (existing) {
+        if (existing.dataset.loaded === 'true') return resolve();
+        existing.addEventListener('load', resolve, { once: true });
+        existing.addEventListener('error', reject, { once: true });
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = false;
+      script.setAttribute(attribute, 'true');
+      script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
+      script.addEventListener('error', reject, { once: true });
+      document.body.appendChild(script);
+    });
+  }
+
+  const loadMemberTools = async () => {
+    try {
+      await loadScript('membership-access.js?v=20260826-buyer-seller-2', 'data-flipora-member-access');
+      await loadScript('orders-dashboard.js?v=20260826-shipping-1', 'data-flipora-orders-dashboard');
+    } catch (error) {
+      console.error('Could not load Flipora member tools', error);
+    }
   };
-  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', loadMemberAccess, { once: true });
-  else loadMemberAccess();
+
+  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', loadMemberTools, { once: true });
+  else loadMemberTools();
 })();
