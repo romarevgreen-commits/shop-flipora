@@ -43,15 +43,109 @@ async function sendPasswordReset(email) {
   }
 }
 
+async function audit(admin, action, targetType, targetId, details = {}) {
+  try {
+    await rest('admin_audit_log', {
+      method: 'POST',
+      body: JSON.stringify({
+        admin_id: admin.id,
+        action,
+        target_type: targetType,
+        target_id: targetId == null ? null : String(targetId),
+        details
+      })
+    });
+  } catch (error) {
+    console.error('Admin audit log error:', error);
+  }
+}
+
+function buildSecurityAlerts(orders, users) {
+  const alerts = [];
+  const userById = new Map(users.map(user => [user.id, user]));
+  const refundByBuyer = new Map();
+  const refundBySeller = new Map();
+  const disputeByBuyer = new Map();
+  const disputeBySeller = new Map();
+
+  for (const order of orders) {
+    const status = String(order.status || '').toLowerCase();
+    if (status === 'disputed') {
+      alerts.push({
+        code: 'open_dispute',
+        severity: 'high',
+        order_id: order.id,
+        title: 'Open payment dispute',
+        message: 'Review the order, shipment record, tracking, buyer and seller communications before taking action.'
+      });
+      disputeByBuyer.set(order.buyer_id, (disputeByBuyer.get(order.buyer_id) || 0) + 1);
+      disputeBySeller.set(order.seller_id, (disputeBySeller.get(order.seller_id) || 0) + 1);
+    }
+    if (status === 'refunded') {
+      alerts.push({
+        code: 'refunded_order',
+        severity: 'medium',
+        order_id: order.id,
+        title: 'Refunded order review',
+        message: 'Confirm the reason for the refund and keep the order, shipment and communication history together for support records.'
+      });
+      refundByBuyer.set(order.buyer_id, (refundByBuyer.get(order.buyer_id) || 0) + 1);
+      refundBySeller.set(order.seller_id, (refundBySeller.get(order.seller_id) || 0) + 1);
+    }
+    if (status === 'shipped' && !String(order.tracking_number || '').trim()) {
+      alerts.push({
+        code: 'shipped_without_tracking',
+        severity: 'medium',
+        order_id: order.id,
+        title: 'Shipment missing tracking',
+        message: 'The order is marked shipped but has no tracking number. Confirm shipment before treating the order as delivered.'
+      });
+    }
+    const buyer = userById.get(order.buyer_id);
+    if (buyer && !buyer.confirmed && ['paid','shipped','delivered','completed','disputed'].includes(status)) {
+      alerts.push({
+        code: 'unverified_buyer_order',
+        severity: 'medium',
+        order_id: order.id,
+        user_id: order.buyer_id,
+        title: 'Unverified buyer account with order activity',
+        message: 'Confirm the account email before making manual account or refund changes.'
+      });
+    }
+  }
+
+  const repeated = [
+    ['buyer_refunds', refundByBuyer, 'buyer', 'Repeated buyer refunds'],
+    ['seller_refunds', refundBySeller, 'seller', 'Repeated seller refunds'],
+    ['buyer_disputes', disputeByBuyer, 'buyer', 'Repeated buyer disputes'],
+    ['seller_disputes', disputeBySeller, 'seller', 'Repeated seller disputes']
+  ];
+  for (const [code, counts, role, title] of repeated) {
+    for (const [userId, count] of counts) {
+      if (count < 2) continue;
+      alerts.push({
+        code,
+        severity: count >= 3 ? 'high' : 'medium',
+        user_id: userId,
+        title,
+        message: `${count} ${code.includes('refund') ? 'refunds' : 'disputes'} are connected to this ${role} account. Review the individual orders before deciding whether any restriction is appropriate.`
+      });
+    }
+  }
+
+  return alerts.slice(0, 100);
+}
+
 exports.handler = async event => {
   try {
     const admin = await requireAdmin(event);
     if (event.httpMethod === 'GET') {
-      const [listings, orders, profiles, users] = await Promise.all([
+      const [listings, orders, profiles, users, auditLog] = await Promise.all([
         rest('listings?select=id,item_number,title,price,category,city,status,seller_id,created_at&order=created_at.desc&limit=500'),
         rest('orders?select=id,item_number,listing_id,buyer_id,seller_id,amount_total,platform_fee,currency,status,shipping_carrier,tracking_number,shipped_at,tracking_updated_at,created_at,paid_at,refunded_at,disputed_at&order=created_at.desc&limit=500'),
         rest('profiles?select=id,display_name,city,contact_email,contact_phone,membership_active,membership_paid_at,stripe_onboarding_complete,created_at&order=created_at.desc&limit=500'),
-        authUsers()
+        authUsers(),
+        rest('admin_audit_log?select=id,admin_id,action,target_type,target_id,details,created_at&order=created_at.desc&limit=100')
       ]);
       return json(200, {
         admin: { email: admin.email, phone: '478-336-3332' },
@@ -59,6 +153,8 @@ exports.handler = async event => {
         orders,
         profiles,
         users,
+        auditLog,
+        securityAlerts: buildSecurityAlerts(orders, users),
         privacy: { payment_card_details_exposed: false }
       });
     }
@@ -69,6 +165,7 @@ exports.handler = async event => {
     if (body.type === 'listing') {
       if (!allowedListingStatuses.has(body.status)) return json(400, { error: 'Invalid listing status' });
       const rows = await rest(`listings?id=eq.${encodeURIComponent(body.id)}`, { method: 'PATCH', body: JSON.stringify({ status: body.status }) });
+      await audit(admin, 'listing_status_changed', 'listing', body.id, { status: body.status });
       return json(200, { item: rows?.[0] || null });
     }
 
@@ -93,6 +190,7 @@ exports.handler = async event => {
       if (body.status === 'shipped') values.shipped_at = new Date().toISOString();
       if (body.status === 'refunded') values.refunded_at = new Date().toISOString();
       const rows = await rest(`orders?id=eq.${encodeURIComponent(body.id)}`, { method: 'PATCH', body: JSON.stringify(values) });
+      await audit(admin, body.status === 'refunded' ? 'order_refunded' : 'order_status_changed', 'order', body.id, { status: body.status });
       return json(200, { item: rows?.[0] || null });
     }
 
@@ -110,11 +208,13 @@ exports.handler = async event => {
       };
       Object.keys(values).forEach(key => values[key] === undefined && delete values[key]);
       const rows = await rest(`orders?id=eq.${encodeURIComponent(body.id)}&select=*`, { method: 'PATCH', body: JSON.stringify(values) });
+      await audit(admin, 'tracking_updated', 'order', body.id, { carrier: values.shipping_carrier, mark_shipped: body.markShipped !== false });
       return json(200, { item: rows?.[0] || null });
     }
 
     if (body.type === 'membership') {
       const rows = await rest(`profiles?id=eq.${encodeURIComponent(body.id)}`, { method: 'PATCH', body: JSON.stringify({ membership_active: Boolean(body.active) }) });
+      await audit(admin, 'membership_changed', 'account', body.id, { active: Boolean(body.active) });
       return json(200, { item: rows?.[0] || null });
     }
 
@@ -122,6 +222,7 @@ exports.handler = async event => {
       const email = String(body.email || '').trim().toLowerCase();
       if (!email || !email.includes('@')) return json(400, { error: 'Valid account email required' });
       await sendPasswordReset(email);
+      await audit(admin, 'password_reset_sent', 'account', body.id || email, { email });
       return json(200, { sent: true });
     }
 
