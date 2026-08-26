@@ -24,7 +24,7 @@
   async function fetchProfiles(ids) {
     const unique = [...new Set(ids.filter(Boolean))];
     if (!unique.length) return [];
-    const { data } = await db.from('profiles').select('id,display_name,city,avatar_url,created_at').in('id', unique);
+    const { data } = await db.from('profiles').select('id,display_name,city,avatar_url,profile_video_url,created_at').in('id', unique);
     (data || []).forEach(profile => profileMap.set(profile.id, profile));
     return data || [];
   }
@@ -109,6 +109,34 @@
       placeholder.hidden = false;
       placeholder.textContent = String(profile?.display_name || 'F').charAt(0).toUpperCase();
     }
+
+    let videoWrap = document.querySelector('#sellerProfileVideoWrap');
+    if (!videoWrap) {
+      const style = document.createElement('style');
+      style.textContent = `
+        .seller-profile-video-wrap{margin-top:16px;display:grid;gap:8px}
+        .seller-profile-video-wrap h3{margin:0;font-size:1rem}
+        .seller-profile-video{width:100%;max-width:560px;max-height:315px;border-radius:16px;background:#111;display:block}
+        .seller-profile-video-note{margin:0;color:var(--muted);font-size:.78rem}
+      `;
+      document.head.appendChild(style);
+      videoWrap = document.createElement('div');
+      videoWrap.id = 'sellerProfileVideoWrap';
+      videoWrap.className = 'seller-profile-video-wrap';
+      profileSection.appendChild(videoWrap);
+    }
+    if (profile?.profile_video_url) {
+      videoWrap.hidden = false;
+      videoWrap.innerHTML = `
+        <h3>Meet the seller</h3>
+        <video class="seller-profile-video" src="${safe(profile.profile_video_url)}" controls playsinline preload="metadata" aria-label="Seller introduction video"></video>
+        <p class="seller-profile-video-note">Seller introduction video · up to 15 seconds</p>
+      `;
+    } else {
+      videoWrap.hidden = true;
+      videoWrap.innerHTML = '';
+    }
+
     const count = reviews.length;
     const average = count ? reviews.reduce((sum, review) => sum + Number(review.rating), 0) / count : 0;
     document.querySelector('#sellerAverage').textContent = count ? average.toFixed(1) + ' ★' : 'New';
