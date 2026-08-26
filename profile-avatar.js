@@ -90,7 +90,7 @@
     section.id = 'sellerVideoSection';
     section.className = 'seller-video-card';
     section.innerHTML = `
-      <div><h3>Seller profile video</h3><p>Add a short video buyers can watch on your seller profile.</p></div>
+      <div><h3>Make a Video for Your Items</h3><p>Add a short video buyers can watch on your seller profile.</p></div>
       <video id="sellerVideoPreview" class="seller-video-preview" controls playsinline hidden></video>
       <input id="sellerVideoInput" type="file" accept="video/*,.mp4,.mov,.webm,.m4v,.3gp" hidden>
       <div class="seller-video-actions">
@@ -189,7 +189,10 @@
         if (uploadError) throw uploadError;
         const publicUrl = db.storage.from('seller-videos').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
         const { data: updated, error: profileError } = await db.from('profiles').update({ profile_video_url: publicUrl }).eq('id', currentUser.id).select('id').maybeSingle();
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Could not attach seller video to profile', profileError);
+          throw new Error('Your video could not be saved to your seller profile. Please try again.');
+        }
         if (!updated) throw new Error('The video uploaded, but Flipora could not attach it to your seller account.');
         if (selectedPreviewUrl) {
           URL.revokeObjectURL(selectedPreviewUrl);
