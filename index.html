@@ -210,6 +210,11 @@
         <input class="photo-source-input" id="photoInput" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple tabindex="-1" aria-hidden="true">
       </fieldset>
       <div class="photo-preview" id="photoPreview" aria-live="polite"><p>Take a new photo or choose one from your gallery or files.</p></div>
+      <section class="sell-profile-video" id="sellProfileVideoWrap" hidden>
+        <strong>Your seller video</strong>
+        <video id="sellProfileVideo" controls playsinline preload="metadata"></video>
+        <p>This profile video will also appear with your item for buyers.</p>
+      </section>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
       <p class="form-note">Listings are connected to your Flipora account. Flipora deducts a 12% marketplace fee from completed item sales; buyers are not charged an additional Flipora fee. Never share payment or private contact details in a public description.</p>
       <button class="button" value="default" type="submit">Publish listing</button>
@@ -230,6 +235,10 @@
         <p class="listing-location" id="detailLocation"></p>
         <a class="directions-link" id="detailDirections" target="_blank" rel="noopener">Get directions</a>
         <a class="seller-profile-link" id="detailSellerProfileLink" href="/reviews.html" hidden>View seller profile & reviews</a>
+        <section class="listing-seller-video" id="detailSellerVideoWrap" hidden>
+          <strong>Video from this seller</strong>
+          <video id="detailSellerVideo" controls playsinline preload="metadata"></video>
+        </section>
         <button class="buy-button" id="detailBuyButton" type="button">Buy securely</button>
         <button class="button button-secondary message-seller-button" id="detailMessageSellerButton" type="button" hidden>Message seller</button>
         <span class="sample-note" id="detailSampleNote" hidden>Sample listing · Navigation example</span>
@@ -314,9 +323,9 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
-  <script src="script.js?v=20260825-member-password-recovery-1" defer></script>
+  <script src="script.js?v=20260826-seller-video-2" defer></script>
   <script src="messaging.js?v=20260824-1" defer></script>
-  <script src="profile-avatar.js?v=20260824-1" defer></script>
+  <script src="profile-avatar.js?v=20260826-2" defer></script>
   <script src="enhancements.js?v=20260824-listing-gallery-1" defer></script>
   <script src="cover-photos.js?v=3" defer></script>
   <script src="listing-image-fixes.js?v=2-photo-viewer" defer></script>
@@ -325,4 +334,5 @@
   <script src="https://translate.google.com/translate_a/element.js?cb=fliporaTranslateInit" async></script>
 </body>
 </html>
+
 

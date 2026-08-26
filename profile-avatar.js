@@ -94,7 +94,7 @@
       <video id="sellerVideoPreview" class="seller-video-preview" controls playsinline hidden></video>
       <input id="sellerVideoInput" type="file" accept="video/*,.mp4,.mov,.webm,.m4v,.3gp" hidden>
       <div class="seller-video-actions">
-        <button class="button button-secondary" id="chooseSellerVideo" type="button">Choose 15-second video</button>
+        <button class="button button-secondary" id="chooseSellerVideo" type="button">Record or choose video</button>
         <button class="button" id="uploadSellerVideo" type="button" disabled>Publish video</button>
         <button class="seller-video-remove" id="removeSellerVideo" type="button" hidden>Remove video</button>
       </div>
@@ -132,15 +132,24 @@
       probe.preload = 'metadata';
       probe.playsInline = true;
       probe.src = objectUrl;
-      probe.onloadedmetadata = () => {
-        const duration = probe.duration;
-        if (!Number.isFinite(duration) || duration > 15.5) {
+      let durationResolved = false;
+      const rejectUnreadableVideo = () => {
+        if (durationResolved) return;
+        durationResolved = true;
+        URL.revokeObjectURL(objectUrl);
+        sellerVideoInput.value = '';
+        showToast('Could not read that video. Try recording or exporting it as MP4.');
+      };
+      const acceptDuration = duration => {
+        if (durationResolved || !Number.isFinite(duration) || duration <= 0) return false;
+        durationResolved = true;
+        if (duration > 15.25) {
           URL.revokeObjectURL(objectUrl);
           sellerVideoInput.value = '';
           sellerVideoPreview.hidden = true;
           sellerVideoPreview.removeAttribute('src');
           showToast('Your seller profile video must be 15 seconds or shorter.');
-          return;
+          return true;
         }
         if (selectedPreviewUrl) URL.revokeObjectURL(selectedPreviewUrl);
         selectedPreviewUrl = objectUrl;
@@ -149,12 +158,18 @@
         sellerVideoPreview.hidden = false;
         sellerVideoUploadButton.disabled = false;
         showToast('Video ready. Tap Publish video to add it to your seller profile.');
+        return true;
       };
-      probe.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
-        sellerVideoInput.value = '';
-        showToast('Could not read that video. Try recording or exporting it as MP4.');
+      probe.onloadedmetadata = () => {
+        if (acceptDuration(probe.duration)) return;
+        // Some Android recordings initially report Infinity. Seeking forces
+        // Chromium to calculate the real duration before upload validation.
+        probe.currentTime = Number.MAX_SAFE_INTEGER;
       };
+      probe.ontimeupdate = () => acceptDuration(probe.duration);
+      probe.ondurationchange = () => acceptDuration(probe.duration);
+      probe.onerror = rejectUnreadableVideo;
+      window.setTimeout(rejectUnreadableVideo, 12000);
     });
 
     sellerVideoUploadButton.addEventListener('click', async () => {
@@ -277,3 +292,4 @@
     }
   });
 })();
+
