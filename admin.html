@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>Flipora Administration</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="admin.css?v=1">
+  <link rel="stylesheet" href="admin.css?v=4">
 </head>
 <body>
   <header class="admin-header"><a href="/" class="brand"><span>F</span> flipora</a><div><strong>Administration</strong><button id="adminSignOut" hidden>Sign out</button></div></header>
@@ -33,15 +33,31 @@
     </section>
 
     <section id="adminDashboard" hidden>
-      <div class="dashboard-title"><div><p class="eyebrow">Website control center</p><h1>Flipora Administration</h1><p>romarevgreen@gmail.com · 478-336-3332</p></div><div class="dashboard-actions"><button class="secondary" id="changeAdminPassword">Change password</button><button id="refreshAdmin">Refresh details</button></div></div>
+      <div class="dashboard-title"><div><p class="eyebrow">Website control center</p><h1>Flipora Administration</h1><p>Operational dashboard · customer payment-card details are never displayed here.</p></div><div class="dashboard-actions"><button class="secondary" id="changeAdminPassword">Change password</button><button id="refreshAdmin">Refresh details</button></div></div>
       <div class="stats" id="adminStats"></div>
-      <nav class="tabs" id="adminTabs"><button class="active" data-tab="listings">Listings</button><button data-tab="orders">Orders</button><button data-tab="members">Members</button><button data-tab="accounts">Accounts</button></nav>
-      <div class="panel"><div class="panel-head"><h2 id="panelTitle">Listings</h2><input id="adminSearch" type="search" placeholder="Search details"></div><div class="table-wrap"><table><thead id="adminTableHead"></thead><tbody id="adminTableBody"></tbody></table></div></div>
+
+      <section class="analytics-grid">
+        <article class="analytics-card">
+          <div class="analytics-head"><div><p class="eyebrow">Financial overview</p><h2>Revenue & refunds</h2></div><span id="chartRangeLabel">Last 6 months</span></div>
+          <canvas id="revenueChart" height="190" aria-label="Flipora revenue and refunds chart"></canvas>
+          <div class="chart-legend"><span><i class="legend-dot revenue-dot"></i>Platform revenue</span><span><i class="legend-dot refund-dot"></i>Refunded sales</span></div>
+        </article>
+        <article class="health-card" id="adminHealth"></article>
+      </section>
+
+      <nav class="tabs" id="adminTabs">
+        <button class="active" data-tab="listings">Listings</button>
+        <button data-tab="orders">Orders</button>
+        <button data-tab="shipping">Shipping</button>
+        <button data-tab="members">Members</button>
+        <button data-tab="accounts">Client accounts</button>
+      </nav>
+      <div class="panel"><div class="panel-head"><h2 id="panelTitle">Listings</h2><input id="adminSearch" type="search" placeholder="Search item number, email, tracking, name..."></div><div class="table-wrap"><table><thead id="adminTableHead"></thead><tbody id="adminTableBody"></tbody></table></div></div>
     </section>
   </main>
   <div class="toast" id="adminToast" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js" defer></script>
-  <script src="admin.js?v=3" defer></script>
+  <script src="admin.js?v=6" defer></script>
 </body>
 </html>
