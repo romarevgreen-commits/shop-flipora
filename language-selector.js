@@ -49,3 +49,12 @@
     }
   };
 })();
+
+(() => {
+  if (document.querySelector('script[data-flipora-member-access]')) return;
+  const script = document.createElement('script');
+  script.src = 'membership-access.js?v=20260826-buy-sell-member-1';
+  script.defer = true;
+  script.dataset.fliporaMemberAccess = 'true';
+  document.body.appendChild(script);
+})();
