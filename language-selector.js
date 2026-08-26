@@ -51,10 +51,14 @@
 })();
 
 (() => {
-  if (document.querySelector('script[data-flipora-member-access]')) return;
-  const script = document.createElement('script');
-  script.src = 'membership-access.js?v=20260826-buy-sell-member-1';
-  script.defer = true;
-  script.dataset.fliporaMemberAccess = 'true';
-  document.body.appendChild(script);
+  const loadMemberAccess = () => {
+    if (document.querySelector('script[data-flipora-member-access]')) return;
+    const script = document.createElement('script');
+    script.src = 'membership-access.js?v=20260826-buy-sell-member-2';
+    script.async = false;
+    script.dataset.fliporaMemberAccess = 'true';
+    document.body.appendChild(script);
+  };
+  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', loadMemberAccess, { once: true });
+  else loadMemberAccess();
 })();
