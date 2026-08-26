@@ -60,7 +60,8 @@
       return;
     }
     if (!data?.length) {
-      messageList.innerHTML = '<p class="seller-message-empty">No buyer messages yet.</p>';
+      messageList.innerHTML = '';
+      accessText.textContent = 'No buyer messages yet';
       return;
     }
     messageList.innerHTML = data.map(message => `
