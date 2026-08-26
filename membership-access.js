@@ -1,6 +1,7 @@
 (() => {
   const membershipCard = document.querySelector('.membership-status-card');
   const membershipButton = document.querySelector('#accountMembershipButton');
+  const accountDialog = document.querySelector('#accountDialog');
   const accountModeTitle = document.querySelector('#accountModeTitle');
   const accountModeText = document.querySelector('#accountModeText');
   const switchModeButton = document.querySelector('#switchBuyerAccountButton');
@@ -43,6 +44,11 @@
     ].filter(Boolean);
   }
 
+  function announceMode(mode) {
+    if (accountDialog) accountDialog.dataset.accountMode = mode;
+    window.dispatchEvent(new CustomEvent('flipora:account-mode', { detail: { mode } }));
+  }
+
   function showMembershipCheckout(sourceButton) {
     if (!currentUser) {
       openAuth('signin');
@@ -64,8 +70,8 @@
       const sellerMode = memberMode === 'seller';
       if (accountModeTitle) accountModeTitle.textContent = sellerMode ? 'Seller account' : 'Buyer account';
       if (accountModeText) accountModeText.textContent = sellerMode
-        ? 'Seller mode is active. List items, manage payouts, and read buyer messages using this same lifetime-member login.'
-        : 'Buyer mode is active. Shop and buy items using this same lifetime-member login.';
+        ? 'Seller mode is active. List items, manage payouts, shipping, and buyer messages using this same lifetime-member login.'
+        : 'Buyer mode is active. Shop, buy items, and view purchase and tracking history using this same lifetime-member login.';
       if (switchModeButton) {
         switchModeButton.hidden = false;
         switchModeButton.textContent = sellerMode ? 'Switch to buyer' : 'Switch to seller';
@@ -73,6 +79,7 @@
       sellerToolElements().forEach(element => { element.hidden = !sellerMode; });
       if (accessText && sellerMode && !/unread/i.test(accessText.textContent || '')) accessText.textContent = 'Messages unlocked';
       if (openMessagesButton && /member/i.test(openMessagesButton.textContent || '')) openMessagesButton.textContent = 'Open messages';
+      announceMode(sellerMode ? 'seller' : 'buyer');
     } else if (currentUser) {
       if (accountModeTitle) accountModeTitle.textContent = 'Membership required';
       if (accountModeText) accountModeText.textContent = '$9.99 one-time lifetime membership unlocks both buyer and seller modes with this same login.';
@@ -81,6 +88,9 @@
         switchModeButton.textContent = 'Switch to seller';
       }
       sellerToolElements().forEach(element => { element.hidden = true; });
+      announceMode('buyer');
+    } else {
+      announceMode('buyer');
     }
   }
 
