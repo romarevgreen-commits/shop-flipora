@@ -49,6 +49,7 @@ exports.handler = async (event) => {
       success_url: `${siteUrl()}/?payment=success`,
       cancel_url: `${siteUrl()}/?payment=cancelled`,
       payment_intent_data: {
+        receipt_email: buyer.email,
         application_fee_amount: fee,
         transfer_data: { destination: seller.stripe_account_id },
         metadata: {
@@ -86,4 +87,5 @@ exports.handler = async (event) => {
     return json(400, { error: error.message || "Could not start checkout" });
   }
 };
+
 
