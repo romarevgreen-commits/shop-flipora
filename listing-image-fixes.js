@@ -1,7 +1,7 @@
 (() => {
   const samplePhotos = {
     "Noise-canceling headphones": { src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=82", emoji: "🎧" },
-    "Healthy monstera plant": { src: "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=82", emoji: "🪴" },
+    "Healthy monstera plant": { src: "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb437ed20646fa8", emoji: "🪴" },
     "Classic 35mm camera": { src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=82", emoji: "📷" },
     "Everyday canvas sneakers": { src: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=82", emoji: "👟" },
     "Compact turntable": { src: "https://images.unsplash.com/photo-1461360228754-6e81c478b882?auto=format&fit=crop&w=900&q=82", emoji: "🎵" },
@@ -96,4 +96,157 @@
   photoViewer.addEventListener("click", event => {
     if (event.target === photoViewer) photoViewer.close();
   });
+})();
+
+
+(() => {
+  const MAX_EDGE = 2000;
+  const TARGET_BYTES = 3 * 1024 * 1024;
+  const HARD_UPLOAD_LIMIT = 7.5 * 1024 * 1024;
+  let compressionPromise = null;
+  let compressionError = null;
+  let allowingResubmit = false;
+
+  const selectedInput = () => {
+    const camera = document.querySelector("#cameraInput");
+    const gallery = document.querySelector("#photoInput");
+    if (camera?.files?.length) return camera;
+    if (gallery?.files?.length) return gallery;
+    return null;
+  };
+
+  const decodeImage = async file => {
+    if ("createImageBitmap" in window) {
+      try {
+        const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+        return {
+          width: bitmap.width,
+          height: bitmap.height,
+          draw: (ctx, width, height) => ctx.drawImage(bitmap, 0, 0, width, height),
+          close: () => bitmap.close()
+        };
+      } catch {}
+    }
+
+    const url = URL.createObjectURL(file);
+    try {
+      const image = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("This photo format cannot be resized. Please choose a JPG, PNG, or WebP photo."));
+        img.src = url;
+      });
+      return {
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        draw: (ctx, width, height) => ctx.drawImage(image, 0, 0, width, height),
+        close: () => {}
+      };
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const canvasToBlob = (canvas, quality) => new Promise((resolve, reject) => {
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Flipora could not optimize this photo.")), "image/jpeg", quality);
+  });
+
+  const optimizePhoto = async file => {
+    if (!file?.type?.startsWith("image/")) throw new Error("Choose an image file for your listing photo.");
+    if (file.size <= TARGET_BYTES && !/image\/(heic|heif)/i.test(file.type)) return file;
+
+    let decoded;
+    try {
+      decoded = await decodeImage(file);
+    } catch (error) {
+      if (file.size < HARD_UPLOAD_LIMIT) return file;
+      throw error;
+    }
+
+    const scale = Math.min(1, MAX_EDGE / Math.max(decoded.width, decoded.height));
+    const width = Math.max(1, Math.round(decoded.width * scale));
+    const height = Math.max(1, Math.round(decoded.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, width, height);
+    decoded.draw(ctx, width, height);
+    decoded.close();
+
+    let blob = await canvasToBlob(canvas, 0.84);
+    for (const quality of [0.74, 0.64, 0.54]) {
+      if (blob.size <= TARGET_BYTES) break;
+      blob = await canvasToBlob(canvas, quality);
+    }
+    canvas.width = 1;
+    canvas.height = 1;
+
+    if (blob.size >= HARD_UPLOAD_LIMIT) throw new Error("This photo is still too large after resizing. Please choose a different photo.");
+    const baseName = (file.name || "listing-photo").replace(/\.[^.]+$/, "").replace(/[^a-z0-9_-]+/gi, "-") || "listing-photo";
+    return new File([blob], `${baseName}.jpg`, { type: "image/jpeg", lastModified: Date.now() });
+  };
+
+  const optimizeInput = async input => {
+    const files = [...(input?.files || [])].slice(0, 6);
+    if (!files.length) return;
+    const optimized = [];
+    for (const file of files) optimized.push(await optimizePhoto(file));
+    const transfer = new DataTransfer();
+    optimized.forEach(file => transfer.items.add(file));
+    input.files = transfer.files;
+    input.dataset.fliporaOptimized = "true";
+    if (typeof renderPhotoPreview === "function") renderPhotoPreview();
+  };
+
+  document.addEventListener("change", event => {
+    const input = event.target.closest?.("#photoInput, #cameraInput");
+    if (!input || !input.files?.length) return;
+    input.dataset.fliporaOptimized = "false";
+    compressionError = null;
+    compressionPromise = optimizeInput(input).catch(error => {
+      input.dataset.fliporaOptimized = "error";
+      compressionError = error;
+    });
+  }, true);
+
+  document.addEventListener("submit", event => {
+    const form = event.target.closest?.("#sellForm");
+    if (!form || allowingResubmit) return;
+    const input = selectedInput();
+    if (!input?.files?.length || input.dataset.fliporaOptimized === "true") return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const submit = form.querySelector('[type="submit"]');
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = "Optimizing photos…";
+    }
+
+    (compressionPromise || optimizeInput(input))
+      .then(() => {
+        if (compressionError) throw compressionError;
+        compressionPromise = null;
+        compressionError = null;
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = "Publish listing";
+        }
+        allowingResubmit = true;
+        if (submit) form.requestSubmit(submit);
+        else form.requestSubmit();
+        allowingResubmit = false;
+      })
+      .catch(error => {
+        compressionPromise = null;
+        compressionError = null;
+        if (submit) {
+          submit.disabled = false;
+          submit.textContent = "Publish listing";
+        }
+        if (typeof showToast === "function") showToast(error.message || "Flipora could not optimize this photo.");
+      });
+  }, true);
 })();
