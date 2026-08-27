@@ -1,7 +1,7 @@
 (() => {
   const samplePhotos = {
     "Noise-canceling headphones": { src: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=82", emoji: "🎧" },
-    "Healthy monstera plant": { src: "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb437ed20646fa8", emoji: "🪴" },
+    "Healthy monstera plant": { src: "https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=900&q=82", emoji: "🪴" },
     "Classic 35mm camera": { src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=82", emoji: "📷" },
     "Everyday canvas sneakers": { src: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=82", emoji: "👟" },
     "Compact turntable": { src: "https://images.unsplash.com/photo-1461360228754-6e81c478b882?auto=format&fit=crop&w=900&q=82", emoji: "🎵" },
