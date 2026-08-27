@@ -13,11 +13,34 @@ let stripeClient;
 const stripe = () => {
   if (!stripeClient) {
     stripeClient = new Stripe(required("STRIPE_SECRET_KEY"), {
-      apiVersion: "2026-07-29.dahlia"
+      apiVersion: "2026-08-26.dahlia"
     });
   }
   return stripeClient;
 };
+
+async function stripeV2(path, options = {}) {
+  const response = await fetch(`https://api.stripe.com/v2/${String(path).replace(/^\/+/, "")}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${required("STRIPE_SECRET_KEY")}`,
+      "Stripe-Version": "2026-08-26.preview",
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  const text = await response.text();
+  let body = null;
+  try { body = text ? JSON.parse(text) : null; } catch { body = null; }
+  if (!response.ok) {
+    const message = body?.error?.message || body?.message || text || "Stripe request failed";
+    const error = new Error(message);
+    error.code = body?.error?.code || body?.code || "stripe_request_failed";
+    throw error;
+  }
+  return body;
+}
+
 const supabaseUrl = () => process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
 const supabasePublishable = () => process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_PUBLISHABLE_KEY;
 const supabaseSecret = () => required("SUPABASE_SECRET_KEY");
@@ -74,5 +97,4 @@ async function rest(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-module.exports = { stripe, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable };
-
+module.exports = { stripe, stripeV2, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable };
