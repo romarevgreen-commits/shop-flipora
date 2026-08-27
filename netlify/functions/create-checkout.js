@@ -26,8 +26,8 @@ exports.handler = async (event) => {
     const account = await stripe().v2.core.accounts.retrieve(seller.stripe_account_id, {
       include: ["configuration.recipient"]
     });
-    const balanceCapabilities = account.configuration?.recipient?.capabilities?.stripe_balance;
-    if (balanceCapabilities?.stripe_transfers?.status !== "active" || balanceCapabilities?.payouts?.status !== "active") {
+    const transferCapability = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers;
+    if (transferCapability?.status !== "active") {
       throw new Error("Seller payouts are not ready");
     }
 
@@ -87,5 +87,3 @@ exports.handler = async (event) => {
     return json(400, { error: error.message || "Could not start checkout" });
   }
 };
-
-
