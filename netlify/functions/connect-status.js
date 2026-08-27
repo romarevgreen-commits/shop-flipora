@@ -11,18 +11,14 @@ exports.handler = async (event) => {
     const accountId = profiles?.[0]?.stripe_account_id;
     if (!accountId) return json(200, { member: true, connected: false, detailsSubmitted: false });
 
-    const account = await stripe().v2.core.accounts.retrieve(accountId, {
-      include: ["configuration.recipient", "requirements"]
-    });
-    const transferCapability = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers;
-    const transfersActive = transferCapability?.status === "active";
-    const requirementEntries = Array.isArray(account.requirements?.entries) ? account.requirements.entries : [];
-    const deadlineStatuses = requirementEntries.map(entry => entry.minimum_deadline?.status).filter(Boolean);
-    const hasPastDue = deadlineStatuses.includes("past_due");
-    const hasCurrentlyDue = deadlineStatuses.includes("currently_due");
+    const account = await stripe().accounts.retrieve(accountId);
+    const transfersActive = account.capabilities?.transfers === "active";
+    const payoutsEnabled = Boolean(account.payouts_enabled);
+    const detailsSubmitted = Boolean(account.details_submitted);
+    const hasPastDue = Array.isArray(account.requirements?.past_due) && account.requirements.past_due.length > 0;
+    const hasCurrentlyDue = Array.isArray(account.requirements?.currently_due) && account.requirements.currently_due.length > 0;
     const requirementsStatus = hasPastDue ? "past_due" : hasCurrentlyDue ? "currently_due" : null;
-    const detailsSubmitted = !hasPastDue && !hasCurrentlyDue;
-    const connected = Boolean(transfersActive);
+    const connected = Boolean(transfersActive && payoutsEnabled && detailsSubmitted);
 
     await rest(`profiles?id=eq.${encodeURIComponent(user.id)}`, {
       method: "PATCH",
@@ -34,8 +30,8 @@ exports.handler = async (event) => {
       connected,
       detailsSubmitted,
       transfersActive,
-      requirementsStatus,
-      transferStatusDetails: transferCapability?.status_details || null
+      payoutsEnabled,
+      requirementsStatus
     });
   } catch (error) {
     console.error("Stripe Connect status error:", error);
