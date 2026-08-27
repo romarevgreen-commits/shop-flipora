@@ -36,9 +36,31 @@ async function stripeV2(path, options = {}) {
     const message = body?.error?.message || body?.message || text || "Stripe request failed";
     const error = new Error(message);
     error.code = body?.error?.code || body?.code || "stripe_request_failed";
+    error.statusCode = response.status;
     throw error;
   }
   return body;
+}
+
+async function recipientAccount(accountId) {
+  const include = new URLSearchParams();
+  include.set("include[0]", "configuration.recipient");
+  include.set("include[1]", "requirements");
+  return stripeV2(`core/accounts/${encodeURIComponent(accountId)}?${include}`);
+}
+
+function recipientPayoutState(account) {
+  const capability = account?.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers;
+  const status = capability?.status || "inactive";
+  const requirements = account?.requirements || {};
+  const pastDue = Array.isArray(requirements.past_due) ? requirements.past_due : [];
+  const currentlyDue = Array.isArray(requirements.currently_due) ? requirements.currently_due : [];
+  const requirementsStatus = pastDue.length ? "past_due" : currentlyDue.length ? "currently_due" : null;
+  return {
+    connected: status === "active",
+    transfersStatus: status,
+    requirementsStatus
+  };
 }
 
 const supabaseUrl = () => process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
@@ -56,27 +78,16 @@ const responseSecurityHeaders = {
   "Vary": "Origin"
 };
 
-const json = (statusCode, body) => ({
-  statusCode,
-  headers: responseSecurityHeaders,
-  body: JSON.stringify(body)
-});
+const json = (statusCode, body) => ({ statusCode, headers: responseSecurityHeaders, body: JSON.stringify(body) });
 
 function assertTrustedOrigin(event) {
   const method = String(event?.httpMethod || "GET").toUpperCase();
   if (["GET", "HEAD", "OPTIONS"].includes(method)) return;
   const origin = event?.headers?.origin || event?.headers?.Origin;
   if (!origin) return;
-
   let parsed;
   let expected;
-  try {
-    parsed = new URL(origin);
-    expected = new URL(siteUrl());
-  } catch {
-    throw new Error("Request origin not allowed");
-  }
-
+  try { parsed = new URL(origin); expected = new URL(siteUrl()); } catch { throw new Error("Request origin not allowed"); }
   if (parsed.origin === expected.origin) return;
   const previewHost = /^[a-z0-9-]+--shop-flipora\.netlify\.app$/i.test(parsed.hostname);
   if (parsed.protocol === "https:" && previewHost) return;
@@ -92,9 +103,7 @@ const bearerToken = (event) => {
 async function authenticatedUser(event) {
   assertTrustedOrigin(event);
   const authorization = bearerToken(event);
-  const response = await fetch(`${supabaseUrl()}/auth/v1/user`, {
-    headers: { Authorization: authorization, apikey: supabasePublishable() }
-  });
+  const response = await fetch(`${supabaseUrl()}/auth/v1/user`, { headers: { Authorization: authorization, apikey: supabasePublishable() } });
   if (!response.ok) throw new Error("Invalid or expired session");
   return response.json();
 }
@@ -103,13 +112,7 @@ async function userRest(path, event, options = {}) {
   const authorization = bearerToken(event);
   const response = await fetch(`${supabaseUrl()}/rest/v1/${path}`, {
     ...options,
-    headers: {
-      apikey: supabasePublishable(),
-      Authorization: authorization,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-      ...(options.headers || {})
-    }
+    headers: { apikey: supabasePublishable(), Authorization: authorization, "Content-Type": "application/json", Prefer: "return=representation", ...(options.headers || {}) }
   });
   const text = await response.text();
   if (!response.ok) throw new Error(text || "Database request failed");
@@ -119,14 +122,12 @@ async function userRest(path, event, options = {}) {
 async function rest(path, options = {}) {
   const response = await fetch(`${supabaseUrl()}/rest/v1/${path}`, {
     ...options,
-    headers: {
-      apikey: supabaseSecret(), Authorization: `Bearer ${supabaseSecret()}`,
-      "Content-Type": "application/json", Prefer: "return=representation", ...(options.headers || {})
-    }
+    headers: { apikey: supabaseSecret(), Authorization: `Bearer ${supabaseSecret()}`, "Content-Type": "application/json", Prefer: "return=representation", ...(options.headers || {}) }
   });
   const text = await response.text();
   if (!response.ok) throw new Error(text || "Database request failed");
   return text ? JSON.parse(text) : null;
 }
 
-module.exports = { stripe, stripeV2, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable, assertTrustedOrigin, responseSecurityHeaders };
+module.exports = { stripe, stripeV2, recipientAccount, recipientPayoutState, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable, assertTrustedOrigin, responseSecurityHeaders };
+
