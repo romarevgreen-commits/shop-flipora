@@ -106,3 +106,13 @@
   security.dataset.fliporaSecurity = 'true';
   document.head.appendChild(security);
 })();
+
+// Load sold-item notifications, private shipping details, and buyer tracking UI.
+(() => {
+  if (document.querySelector('script[data-flipora-shipping]')) return;
+  const shipping = document.createElement('script');
+  shipping.src = 'shipping-workflow.js?v=20260827-1';
+  shipping.async = false;
+  shipping.dataset.fliporaShipping = 'true';
+  document.head.appendChild(shipping);
+})();
