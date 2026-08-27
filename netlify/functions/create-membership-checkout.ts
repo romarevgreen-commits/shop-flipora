@@ -61,7 +61,7 @@ export default async (request: Request) => {
       payment_intent_data: { receipt_email: user.email },
       line_items: [{ quantity: 1, price_data: { currency: "usd", unit_amount: 999, product_data: { name: "Flipora Lifetime Seller Membership", description: "One-time membership required to connect seller payouts and receive earnings" } } }],
       success_url: `${siteUrl()}/?membership=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl()}/?membership=cancelled`,
+      cancel_url: `${siteUrl()}/`,
       metadata: { purchase_type: "seller_membership", user_id: String(user.id), membership_type: "lifetime" }
     });
     return json(200, { url: session.url });
