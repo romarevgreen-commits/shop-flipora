@@ -96,3 +96,13 @@
   if (sellDialog) sellDialog.addEventListener('close', () => showAll(true));
   window.setTimeout(updateCount, 350);
 })();
+
+// Load the account security module after the core marketplace scripts are ready.
+(() => {
+  if (document.querySelector('script[data-flipora-security]')) return;
+  const security = document.createElement('script');
+  security.src = 'security.js?v=20260827-1';
+  security.async = false;
+  security.dataset.fliporaSecurity = 'true';
+  document.head.appendChild(security);
+})();
