@@ -257,3 +257,80 @@
       });
   }, true);
 })();
+
+
+(() => {
+  const photoInput = document.querySelector("#photoInput");
+  const cameraInput = document.querySelector("#cameraInput");
+  const photoPreview = document.querySelector("#photoPreview");
+  if (!photoInput || !cameraInput || !photoPreview) return;
+
+  const previewStyle = document.createElement("style");
+  previewStyle.textContent = `
+    .photo-preview{grid-template-columns:repeat(auto-fill,62px)!important;gap:10px!important;align-items:start!important}
+    .photo-preview .photo-preview-item{position:relative;width:62px;height:62px;border-radius:10px;overflow:visible}
+    .photo-preview .photo-preview-item img{display:block;width:62px!important;height:62px!important;aspect-ratio:1!important;border-radius:10px;object-fit:cover}
+    .photo-preview .photo-remove{position:absolute;top:-7px;right:-7px;display:grid;place-items:center;width:23px;height:23px;padding:0;border:2px solid #fff;border-radius:999px;background:#222;color:#fff;font-size:16px;font-weight:800;line-height:1;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.25);z-index:2}
+    .photo-preview .photo-remove:focus-visible{outline:3px solid #6d5dfc;outline-offset:2px}
+    .photo-preview .photo-count,.photo-preview .photo-help{grid-column:1/-1;width:100%;margin:2px 0 0}
+    @media(max-width:480px){
+      .photo-preview{grid-template-columns:repeat(auto-fill,54px)!important;gap:9px!important}
+      .photo-preview .photo-preview-item{width:54px;height:54px}
+      .photo-preview .photo-preview-item img{width:54px!important;height:54px!important}
+      .photo-preview .photo-remove{top:-6px;right:-6px;width:22px;height:22px;font-size:15px}
+    }
+  `;
+  document.head.appendChild(previewStyle);
+
+  let previewUrls = [];
+  const releasePreviewUrls = () => {
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    previewUrls = [];
+  };
+
+  const activeInput = () => cameraInput.files.length ? cameraInput : photoInput.files.length ? photoInput : null;
+
+  window.renderPhotoPreview = function renderPhotoPreviewWithRemove() {
+    releasePreviewUrls();
+    const input = activeInput();
+    const files = [...(input?.files || [])].slice(0, 6);
+    if (!files.length) {
+      photoPreview.innerHTML = '<p class="photo-help">Take a new photo or choose up to 6 from your gallery or files.</p>';
+      return;
+    }
+
+    const thumbnails = files.map((file, index) => {
+      const url = URL.createObjectURL(file);
+      previewUrls.push(url);
+      return `<div class="photo-preview-item"><img src="${url}" alt="Selected item photo ${index + 1}"><button class="photo-remove" type="button" data-remove-photo="${index}" aria-label="Remove photo ${index + 1}" title="Remove photo">×</button></div>`;
+    }).join("");
+    photoPreview.innerHTML = `${thumbnails}<p class="photo-count">${files.length} of 6 photos selected · Tap × to remove</p>`;
+  };
+
+  photoPreview.addEventListener("click", event => {
+    const removeButton = event.target.closest("[data-remove-photo]");
+    if (!removeButton) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const input = activeInput();
+    if (!input) return;
+    const removeIndex = Number(removeButton.dataset.removePhoto);
+    const remaining = [...input.files].filter((_, index) => index !== removeIndex);
+    const transfer = new DataTransfer();
+    remaining.forEach(file => transfer.items.add(file));
+    input.files = transfer.files;
+    if (!remaining.length) {
+      delete input.dataset.fliporaOptimized;
+    }
+    window.renderPhotoPreview();
+  });
+
+  const sellForm = document.querySelector("#sellForm");
+  sellForm?.addEventListener("reset", () => {
+    window.setTimeout(() => {
+      releasePreviewUrls();
+      window.renderPhotoPreview();
+    }, 0);
+  });
+})();
