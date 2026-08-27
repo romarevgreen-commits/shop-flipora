@@ -23,11 +23,8 @@ exports.handler = async (event) => {
     if (!seller?.membership_active) throw new Error("Seller membership is not active");
     if (!seller?.stripe_account_id) throw new Error("Seller payouts are not ready");
 
-    const account = await stripe().v2.core.accounts.retrieve(seller.stripe_account_id, {
-      include: ["configuration.recipient"]
-    });
-    const transferCapability = account.configuration?.recipient?.capabilities?.stripe_balance?.stripe_transfers;
-    if (transferCapability?.status !== "active") {
+    const account = await stripe().accounts.retrieve(seller.stripe_account_id);
+    if (account.capabilities?.transfers !== "active") {
       throw new Error("Seller payouts are not ready");
     }
 
