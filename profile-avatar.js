@@ -1,4 +1,15 @@
 (() => {
+  const avatarSizeStyle = document.createElement('style');
+  avatarSizeStyle.textContent = `
+    .profile-photo-card{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+    .profile-photo-card>div:last-of-type{min-width:0;display:grid;gap:5px;flex:1}.profile-photo-card>div:last-of-type>span{color:var(--muted);font-size:.76rem;line-height:1.4}
+    .profile-avatar-wrap{width:88px!important;height:88px!important;min-width:88px!important;max-width:88px!important;min-height:88px!important;max-height:88px!important;flex:0 0 88px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#ebe6ff}
+    #profileAvatarImage{display:block;width:88px!important;height:88px!important;max-width:88px!important;max-height:88px!important;object-fit:cover!important;object-position:center;border-radius:50%}
+    #profileAvatarPlaceholder{width:88px;height:88px;display:grid;place-items:center;border-radius:50%;background:var(--purple);color:#fff;font-size:2rem;font-weight:900}
+    @media(max-width:480px){.profile-photo-card{align-items:flex-start}.profile-avatar-wrap,#profileAvatarImage,#profileAvatarPlaceholder{width:72px!important;height:72px!important;min-width:72px!important;max-width:72px!important;min-height:72px!important;max-height:72px!important}.profile-avatar-wrap{flex-basis:72px}}
+  `;
+  document.head.appendChild(avatarSizeStyle);
+
   const input = document.querySelector('#profilePhotoInput');
   const chooseButton = document.querySelector('#chooseProfilePhoto');
   const image = document.querySelector('#profileAvatarImage');
