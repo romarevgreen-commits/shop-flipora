@@ -1,4 +1,4 @@
-const { stripeV2, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
+const { stripe, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
@@ -8,32 +8,32 @@ exports.handler = async (event) => {
     if (!profiles?.[0]?.membership_active) throw new Error("Pay the $9.99 lifetime membership fee before connecting seller payouts");
 
     let accountId = profiles?.[0]?.stripe_account_id;
+
+    if (accountId) {
+      try {
+        await stripe().accounts.retrieve(accountId);
+      } catch (error) {
+        if (error?.code === "resource_missing" || error?.statusCode === 404) {
+          accountId = null;
+        } else {
+          throw error;
+        }
+      }
+    }
+
     if (!accountId) {
-      const account = await stripeV2("core/accounts", {
-        method: "POST",
-        body: JSON.stringify({
-          contact_email: user.email,
-          display_name: user.user_metadata?.display_name || user.email.split("@")[0],
-          defaults: {
-            responsibilities: {
-              fees_collector: "application",
-              losses_collector: "application"
-            }
-          },
-          dashboard: "express",
-          identity: { country: "us" },
-          configuration: {
-            recipient: {
-              capabilities: {
-                stripe_balance: {
-                  stripe_transfers: { requested: true }
-                }
-              }
-            }
-          },
-          metadata: { flipora_user_id: user.id },
-          include: ["configuration.recipient", "identity", "requirements"]
-        })
+      const account = await stripe().accounts.create({
+        type: "express",
+        country: "US",
+        email: user.email,
+        capabilities: {
+          transfers: { requested: true }
+        },
+        business_profile: {
+          url: siteUrl(),
+          product_description: "Sell items and receive marketplace payouts through Flipora."
+        },
+        metadata: { flipora_user_id: user.id }
       });
       accountId = account.id;
       await rest(`profiles?id=eq.${encodeURIComponent(user.id)}`, {
@@ -42,34 +42,23 @@ exports.handler = async (event) => {
       });
     }
 
-    const link = await stripeV2("core/account_links", {
-      method: "POST",
-      body: JSON.stringify({
-        account: accountId,
-        use_case: {
-          type: "account_onboarding",
-          account_onboarding: {
-            configurations: ["recipient"],
-            refresh_url: `${siteUrl()}/?stripe=refresh`,
-            return_url: `${siteUrl()}/?stripe=return`,
-            collection_options: {
-              fields: "eventually_due",
-              future_requirements: "include"
-            }
-          }
-        }
-      })
+    const link = await stripe().accountLinks.create({
+      account: accountId,
+      refresh_url: `${siteUrl()}/?stripe=refresh`,
+      return_url: `${siteUrl()}/?stripe=return`,
+      type: "account_onboarding",
+      collection_options: {
+        fields: "eventually_due",
+        future_requirements: "include"
+      }
     });
 
     return json(200, { url: link.url });
   } catch (error) {
     console.error("Stripe Connect onboarding error:", error);
     const text = String(error.message || "");
-    if (error.code === "accounts_v2_access_blocked") {
-      return json(400, { error: "Stripe Connect Accounts v2 is not enabled for the Flipora Stripe account yet. Finish the Connect platform setup in Stripe, then try again." });
-    }
-    if (/loss|liabilit|responsibil|platform profile/i.test(text)) {
-      return json(400, { error: "Stripe requires Flipora to accept the marketplace platform responsibilities and loss liability before seller payout accounts can be created. Complete the Stripe Connect platform profile, then tap Connect Stripe again." });
+    if (/connect platform|signed up for connect|platform profile/i.test(text)) {
+      return json(400, { error: "Finish the Stripe Connect platform setup for Flipora in Stripe, then tap Connect Stripe again." });
     }
     return json(400, { error: text || "Could not start Stripe onboarding" });
   }
