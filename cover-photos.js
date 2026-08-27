@@ -116,3 +116,13 @@
   shipping.dataset.fliporaShipping = 'true';
   document.head.appendChild(shipping);
 })();
+
+// Intercept shipping form saves and route them through the secured Netlify function.
+(() => {
+  if (document.querySelector('script[data-flipora-shipping-secure]')) return;
+  const secureShipping = document.createElement('script');
+  secureShipping.src = 'shipping-secure-patch.js?v=20260827-1';
+  secureShipping.async = false;
+  secureShipping.dataset.fliporaShippingSecure = 'true';
+  document.head.appendChild(secureShipping);
+})();
