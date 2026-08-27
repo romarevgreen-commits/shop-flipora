@@ -13,7 +13,7 @@ let stripeClient;
 const stripe = () => {
   if (!stripeClient) {
     stripeClient = new Stripe(required("STRIPE_SECRET_KEY"), {
-      apiVersion: "2026-08-26.dahlia"
+      apiVersion: "2026-07-29.dahlia"
     });
   }
   return stripeClient;
@@ -24,7 +24,7 @@ async function stripeV2(path, options = {}) {
     ...options,
     headers: {
       Authorization: `Bearer ${required("STRIPE_SECRET_KEY")}`,
-      "Stripe-Version": "2026-08-26.preview",
+      "Stripe-Version": "2026-07-29.preview",
       "Content-Type": "application/json",
       ...(options.headers || {})
     }
