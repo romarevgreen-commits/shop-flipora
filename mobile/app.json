@@ -2,6 +2,7 @@
   "expo": {
     "name": "Flipora",
     "slug": "flipora-marketplace",
+    "owner": "romareg48s-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -27,7 +28,10 @@
       ]
     },
     "extra": {
-      "siteUrl": "https://shop-flipora.netlify.app"
+      "siteUrl": "https://shop-flipora.netlify.app",
+      "eas": {
+        "projectId": "6c349d30-1dbe-437b-996c-605eb334faa7"
+      }
     }
   }
 }
