@@ -6,10 +6,6 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "scheme": "flipora",
-    "splash": {
-      "backgroundColor": "#5b35f5",
-      "resizeMode": "contain"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.flipora.marketplace",
