@@ -15,6 +15,13 @@
     .listing-image{position:relative;overflow:hidden}
     .listing-image img{display:block;width:100%;height:100%;object-fit:cover;font-size:0!important;color:transparent!important;line-height:0!important}
     .listing-image-fallback{width:100%;height:100%;display:grid;place-items:center;font-size:4rem;line-height:1;background:var(--card-bg,#eee)}
+    .photo-preview{grid-template-columns:repeat(auto-fill,minmax(72px,84px))!important;justify-content:start!important;align-items:start}
+    .photo-preview img{width:84px!important;height:84px!important;aspect-ratio:1!important;object-fit:cover}
+    .photo-preview .photo-count{grid-column:1/-1;width:100%}
+    @media(max-width:480px){
+      .photo-preview{grid-template-columns:repeat(auto-fill,minmax(68px,76px))!important}
+      .photo-preview img{width:76px!important;height:76px!important}
+    }
   `;
   document.head.appendChild(style);
 
@@ -100,9 +107,9 @@
 
 
 (() => {
-  const MAX_EDGE = 2000;
-  const TARGET_BYTES = 3 * 1024 * 1024;
-  const HARD_UPLOAD_LIMIT = 7.5 * 1024 * 1024;
+  const MAX_EDGE = 1280;
+  const TARGET_BYTES = 900 * 1024;
+  const HARD_UPLOAD_LIMIT = 1.5 * 1024 * 1024;
   let compressionPromise = null;
   let compressionError = null;
   let allowingResubmit = false;
@@ -159,7 +166,7 @@
     try {
       decoded = await decodeImage(file);
     } catch (error) {
-      if (file.size < HARD_UPLOAD_LIMIT) return file;
+      if (file.size <= HARD_UPLOAD_LIMIT) return file;
       throw error;
     }
 
@@ -175,15 +182,15 @@
     decoded.draw(ctx, width, height);
     decoded.close();
 
-    let blob = await canvasToBlob(canvas, 0.84);
-    for (const quality of [0.74, 0.64, 0.54]) {
+    let blob = await canvasToBlob(canvas, 0.78);
+    for (const quality of [0.68, 0.58, 0.50, 0.42]) {
       if (blob.size <= TARGET_BYTES) break;
       blob = await canvasToBlob(canvas, quality);
     }
     canvas.width = 1;
     canvas.height = 1;
 
-    if (blob.size >= HARD_UPLOAD_LIMIT) throw new Error("This photo is still too large after resizing. Please choose a different photo.");
+    if (blob.size > HARD_UPLOAD_LIMIT) throw new Error("This photo is still too large after resizing. Please choose a different photo.");
     const baseName = (file.name || "listing-photo").replace(/\.[^.]+$/, "").replace(/[^a-z0-9_-]+/gi, "-") || "listing-photo";
     return new File([blob], `${baseName}.jpg`, { type: "image/jpeg", lastModified: Date.now() });
   };
