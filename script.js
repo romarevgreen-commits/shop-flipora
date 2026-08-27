@@ -60,4 +60,36 @@ const pageStatus=new URLSearchParams(location.search);if(pageStatus.get("payment
 if(pageStatus.get("membership")==="success"){showToast("Confirming your lifetime membership…");const confirmPaidMembership=async()=>{if(!currentUser)return window.setTimeout(confirmPaidMembership,300);try{const result=await paymentRequest("/.netlify/functions/confirm-membership",{method:"POST",body:JSON.stringify({sessionId:pageStatus.get("session_id")})});if(result.member){await updateAccount(currentUser);history.replaceState({},document.title,location.pathname);showToast("Your account is active for life. Buyer messages are unlocked.");return}}catch(error){console.error("Membership confirmation failed",error)}window.setTimeout(confirmPaidMembership,2000)};confirmPaidMembership()}if(pageStatus.get("membership")==="cancelled")showToast("Membership checkout cancelled. No payment was taken.");
 document.querySelector("#year").textContent=new Date().getFullYear();loadListings();
 
+const membershipCardForCancel=document.querySelector(".membership-status-card");
+if(membershipCardForCancel){
+  const cancelMembershipButton=document.createElement("button");
+  cancelMembershipButton.className="button button-secondary";
+  cancelMembershipButton.id="cancelMembershipButton";
+  cancelMembershipButton.type="button";
+  cancelMembershipButton.textContent="Cancel membership";
+  cancelMembershipButton.hidden=true;
+  membershipCardForCancel.insertAdjacentElement("afterend",cancelMembershipButton);
 
+  window.addEventListener("flipora:membership-status",event=>{
+    cancelMembershipButton.hidden=!Boolean(event.detail?.active);
+  });
+
+  cancelMembershipButton.addEventListener("click",async()=>{
+    if(!membershipActive)return showToast("There is no active membership to cancel.");
+    const confirmed=window.confirm("Cancel your Flipora membership? This will turn off member benefits and seller payout access. Your one-time membership payment is not automatically refunded.");
+    if(!confirmed)return;
+
+    cancelMembershipButton.disabled=true;
+    cancelMembershipButton.textContent="Cancelling…";
+    try{
+      const result=await paymentRequest("/.netlify/functions/cancel-membership",{method:"POST",body:"{}"});
+      await updateAccount(currentUser);
+      showToast(result.message||"Membership cancelled.");
+    }catch(error){
+      showToast(error.message);
+    }finally{
+      cancelMembershipButton.disabled=false;
+      cancelMembershipButton.textContent="Cancel membership";
+    }
+  });
+}
