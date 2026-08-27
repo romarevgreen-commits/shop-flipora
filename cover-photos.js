@@ -33,3 +33,66 @@
     </figure>
   `;
 })();
+
+// Make Explore denser, easier to search, and reset stale filters after publishing.
+(() => {
+  const browse = document.querySelector('#browse');
+  const grid = document.querySelector('#listingGrid');
+  const filters = document.querySelector('#categoryFilters');
+  const search = document.querySelector('#searchInput');
+  const sellDialog = document.querySelector('#sellDialog');
+  if (!browse || !grid || !filters || !search) return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .browse-section{padding-left:clamp(14px,4vw,72px)!important;padding-right:clamp(14px,4vw,72px)!important}
+    .browse-results-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 18px;color:var(--muted);font-size:.78rem;font-weight:800}
+    .browse-clear-filters{border:1px solid var(--line);background:#fff;color:var(--purple);border-radius:999px;padding:7px 11px;font-weight:850;cursor:pointer}
+    .listing-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))!important;gap:14px!important}
+    @media(max-width:560px){
+      .browse-section{padding-left:10px!important;padding-right:10px!important}
+      .listing-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+      .listing-image{height:150px!important}
+      .listing-body{padding:11px!important}
+      .listing-body h3{font-size:.92rem!important;line-height:1.2}
+      .listing-body p,.listing-directions{font-size:.69rem!important}
+      .listing-meta{align-items:flex-start;gap:5px}
+      .listing-category{font-size:.58rem!important;letter-spacing:.06em!important}
+      .price{font-size:.95rem!important}
+      .buy-button{padding:9px 7px!important;font-size:.75rem!important}
+    }
+    @media(max-width:350px){.listing-grid{grid-template-columns:1fr!important}.listing-image{height:210px!important}}
+  `;
+  document.head.appendChild(style);
+
+  const bar = document.createElement('div');
+  bar.className = 'browse-results-bar';
+  bar.innerHTML = '<span id="browseResultCount">Loading items…</span><button class="browse-clear-filters" type="button">Show all items</button>';
+  filters.insertAdjacentElement('afterend', bar);
+  const count = bar.querySelector('#browseResultCount');
+
+  const updateCount = () => {
+    const total = grid.querySelectorAll('.listing-card').length;
+    count.textContent = `${total} item${total === 1 ? '' : 's'} shown`;
+  };
+
+  const showAll = (scroll = false) => {
+    search.value = '';
+    search.dispatchEvent(new Event('input', { bubbles: true }));
+    const all = filters.querySelector('[data-category="All"]');
+    if (all && !all.classList.contains('active')) all.click();
+    else if (all) all.click();
+    window.setTimeout(updateCount, 80);
+    if (scroll) window.setTimeout(() => browse.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+  };
+
+  bar.querySelector('.browse-clear-filters').addEventListener('click', () => showAll(false));
+  search.addEventListener('input', () => window.setTimeout(updateCount, 30));
+  filters.addEventListener('click', () => window.setTimeout(updateCount, 30));
+  new MutationObserver(updateCount).observe(grid, { childList: true });
+
+  // A successful publish closes the dialog after the listing is saved. Resetting
+  // filters here guarantees the new item is visible at the top of Explore.
+  if (sellDialog) sellDialog.addEventListener('close', () => showAll(true));
+  window.setTimeout(updateCount, 350);
+})();
