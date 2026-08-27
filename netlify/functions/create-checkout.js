@@ -38,6 +38,10 @@ exports.handler = async (event) => {
       mode: "payment",
       integration_identifier: INTEGRATION_IDENTIFIER,
       customer_email: buyer.email,
+      shipping_address_collection: { allowed_countries: ["US"] },
+      custom_text: {
+        shipping_address: { message: "Enter the address where you want this Flipora item delivered." }
+      },
       line_items: [{
         quantity: 1,
         price_data: {
@@ -72,6 +76,7 @@ exports.handler = async (event) => {
       method: "POST",
       body: JSON.stringify({
         listing_id: listing.id,
+        item_title: listing.title,
         buyer_id: buyer.id,
         seller_id: listing.seller_id,
         stripe_checkout_session_id: session.id,
