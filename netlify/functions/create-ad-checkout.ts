@@ -7,15 +7,39 @@ const packages = {
   featured: { name: "Flipora Featured Ad — 30 days", amount: 9900, days: 30, placement: "homepage-priority" }
 } as const;
 
+const securityHeaders = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store, max-age=0",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+  "X-Frame-Options": "DENY",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  "Vary": "Origin"
+};
 const json = (status: number, body: Record<string, unknown>) => new Response(JSON.stringify(body), {
   status,
-  headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }
+  headers: securityHeaders
 });
 
+const siteUrl = () => Netlify.env.get("SITE_URL") || "https://shop-flipora.netlify.app";
 const randomLetters = () => Array.from({ length: 8 }, () => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join("");
+
+function trustedOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  if (!origin) return true;
+  try {
+    const incoming = new URL(origin);
+    const expected = new URL(siteUrl());
+    if (incoming.origin === expected.origin) return true;
+    return incoming.protocol === "https:" && /^[a-z0-9-]+--shop-flipora\.netlify\.app$/i.test(incoming.hostname);
+  } catch {
+    return false;
+  }
+}
 
 export default async (request: Request) => {
   if (request.method !== "POST") return json(405, { error: "Method not allowed" });
+  if (!trustedOrigin(request)) return json(403, { error: "Request origin not allowed" });
   try {
     const authorization = request.headers.get("authorization");
     if (!authorization?.startsWith("Bearer ")) return json(401, { error: "Sign in and become a member before advertising" });
@@ -49,8 +73,7 @@ export default async (request: Request) => {
       return json(400, { error: "Enter a valid website or contact link" });
     }
 
-    const stripe = new Stripe(secretKey, { apiVersion: "2026-07-29.dahlia" });
-    const siteUrl = Netlify.env.get("SITE_URL") || "https://shop-flipora.netlify.app";
+    const stripe = new Stripe(secretKey, { apiVersion: "2026-08-26.dahlia" });
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: user.email,
@@ -63,8 +86,8 @@ export default async (request: Request) => {
           product_data: { name: selected.name, description: `${selected.days}-day ${selected.placement} advertising placement` }
         }
       }],
-      success_url: `${siteUrl}/?ad=success&session_id={CHECKOUT_SESSION_ID}#advertise`,
-      cancel_url: `${siteUrl}/?ad=cancelled#advertise`,
+      success_url: `${siteUrl()}/?ad=success&session_id={CHECKOUT_SESSION_ID}#advertise`,
+      cancel_url: `${siteUrl()}/?ad=cancelled#advertise`,
       metadata: { purchase_type: "advertisement", user_id: String(user.id), package_id: packageId, duration_days: String(selected.days), placement: selected.placement, business_name: cleanName, ad_message: cleanMessage, destination_url: cleanUrl }
     });
 
