@@ -46,11 +46,42 @@ const supabasePublishable = () => process.env.SUPABASE_PUBLISHABLE_KEY || proces
 const supabaseSecret = () => required("SUPABASE_SECRET_KEY");
 const siteUrl = () => process.env.SITE_URL || "https://shop-flipora.netlify.app";
 
+const responseSecurityHeaders = {
+  "Content-Type": "application/json",
+  "Cache-Control": "no-store, max-age=0",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+  "X-Frame-Options": "DENY",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  "Vary": "Origin"
+};
+
 const json = (statusCode, body) => ({
   statusCode,
-  headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  headers: responseSecurityHeaders,
   body: JSON.stringify(body)
 });
+
+function assertTrustedOrigin(event) {
+  const method = String(event?.httpMethod || "GET").toUpperCase();
+  if (["GET", "HEAD", "OPTIONS"].includes(method)) return;
+  const origin = event?.headers?.origin || event?.headers?.Origin;
+  if (!origin) return;
+
+  let parsed;
+  let expected;
+  try {
+    parsed = new URL(origin);
+    expected = new URL(siteUrl());
+  } catch {
+    throw new Error("Request origin not allowed");
+  }
+
+  if (parsed.origin === expected.origin) return;
+  const previewHost = /^[a-z0-9-]+--shop-flipora\.netlify\.app$/i.test(parsed.hostname);
+  if (parsed.protocol === "https:" && previewHost) return;
+  throw new Error("Request origin not allowed");
+}
 
 const bearerToken = (event) => {
   const authorization = event.headers.authorization || event.headers.Authorization;
@@ -59,6 +90,7 @@ const bearerToken = (event) => {
 };
 
 async function authenticatedUser(event) {
+  assertTrustedOrigin(event);
   const authorization = bearerToken(event);
   const response = await fetch(`${supabaseUrl()}/auth/v1/user`, {
     headers: { Authorization: authorization, apikey: supabasePublishable() }
@@ -97,4 +129,4 @@ async function rest(path, options = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-module.exports = { stripe, stripeV2, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable };
+module.exports = { stripe, stripeV2, json, authenticatedUser, userRest, rest, siteUrl, required, supabaseUrl, supabaseSecret, supabasePublishable, assertTrustedOrigin, responseSecurityHeaders };
