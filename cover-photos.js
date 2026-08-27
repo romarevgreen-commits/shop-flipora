@@ -106,3 +106,23 @@
   security.dataset.fliporaSecurity = 'true';
   document.head.appendChild(security);
 })();
+
+// Load sold-item notifications, private shipping details, and buyer tracking UI.
+(() => {
+  if (document.querySelector('script[data-flipora-shipping]')) return;
+  const shipping = document.createElement('script');
+  shipping.src = 'shipping-workflow.js?v=20260827-1';
+  shipping.async = false;
+  shipping.dataset.fliporaShipping = 'true';
+  document.head.appendChild(shipping);
+})();
+
+// Intercept shipping form saves and route them through the secured Netlify function.
+(() => {
+  if (document.querySelector('script[data-flipora-shipping-secure]')) return;
+  const secureShipping = document.createElement('script');
+  secureShipping.src = 'shipping-secure-patch.js?v=20260827-1';
+  secureShipping.async = false;
+  secureShipping.dataset.fliporaShippingSecure = 'true';
+  document.head.appendChild(secureShipping);
+})();

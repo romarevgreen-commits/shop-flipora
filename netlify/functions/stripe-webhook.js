@@ -8,13 +8,33 @@ async function updateOrderByPaymentIntent(paymentIntentId, values) {
   });
 }
 
+function safeShippingDetails(session) {
+  const details = session.shipping_details || session.collected_information?.shipping_details || null;
+  const address = details?.address || null;
+  if (!address) return { name: null, address: null };
+  return {
+    name: details.name || null,
+    address: {
+      line1: address.line1 || null,
+      line2: address.line2 || null,
+      city: address.city || null,
+      state: address.state || null,
+      postal_code: address.postal_code || null,
+      country: address.country || null
+    }
+  };
+}
+
 async function completeListingPurchase(session) {
+  const shipping = safeShippingDetails(session);
   const completed = await rest("rpc/complete_flipora_order", {
     method: "POST",
     body: JSON.stringify({
       p_checkout_session_id: session.id,
       p_payment_intent_id: session.payment_intent,
-      p_paid_time: new Date().toISOString()
+      p_paid_time: new Date().toISOString(),
+      p_shipping_name: shipping.name,
+      p_shipping_address: shipping.address
     })
   });
 
@@ -104,4 +124,3 @@ exports.handler = async (event) => {
     return json(400, { error: `Webhook error: ${error.message}` });
   }
 };
-
