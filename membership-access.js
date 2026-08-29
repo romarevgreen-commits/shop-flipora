@@ -8,8 +8,6 @@
   const accessText = document.querySelector('#messageAccessText');
   const openMessagesButton = document.querySelector('#openMessagesButton');
   const sellForm = document.querySelector('#sellForm');
-  const composeForm = document.querySelector('#messageSellerForm');
-  const detailMessageButton = document.querySelector('#detailMessageSellerButton');
 
   let memberMode = 'buyer';
 
@@ -53,7 +51,7 @@
     if (!currentUser) {
       openAuth('signin');
       const message = document.querySelector('#authMessage');
-      if (message) message.textContent = 'Sign in, then activate your $9.99 lifetime membership to buy or sell.';
+      if (message) message.textContent = 'Sign in, then activate your $9.99 lifetime seller membership to list and sell items.';
       return;
     }
     const button = sourceButton || membershipButton || document.querySelector('.membership-checkout-button');
@@ -71,7 +69,7 @@
       if (accountModeTitle) accountModeTitle.textContent = sellerMode ? 'Seller account' : 'Buyer account';
       if (accountModeText) accountModeText.textContent = sellerMode
         ? 'Seller mode is active. List items, manage payouts, shipping, and buyer messages using this same lifetime-member login.'
-        : 'Buyer mode is active. Shop, buy items, and view purchase and tracking history using this same lifetime-member login.';
+        : 'Buyer mode is active. Shopping and checkout are free. Switch to seller mode when you want to list or sell items.';
       if (switchModeButton) {
         switchModeButton.hidden = false;
         switchModeButton.textContent = sellerMode ? 'Switch to buyer' : 'Switch to seller';
@@ -81,11 +79,12 @@
       if (openMessagesButton && /member/i.test(openMessagesButton.textContent || '')) openMessagesButton.textContent = 'Open messages';
       announceMode(sellerMode ? 'seller' : 'buyer');
     } else if (currentUser) {
-      if (accountModeTitle) accountModeTitle.textContent = 'Membership required';
-      if (accountModeText) accountModeText.textContent = '$9.99 one-time lifetime membership unlocks both buyer and seller modes with this same login.';
+      memberMode = 'buyer';
+      if (accountModeTitle) accountModeTitle.textContent = 'Buyer account';
+      if (accountModeText) accountModeText.textContent = 'Shopping and checkout are free. $9.99 one-time lifetime seller membership is required only to list and sell items.';
       if (switchModeButton) {
-        switchModeButton.hidden = true;
-        switchModeButton.textContent = 'Switch to seller';
+        switchModeButton.hidden = false;
+        switchModeButton.textContent = 'Become a seller – $9.99 lifetime';
       }
       sellerToolElements().forEach(element => { element.hidden = true; });
       announceMode('buyer');
@@ -119,21 +118,6 @@
       saveMode('seller');
       renderMemberAccess();
     }
-
-    const buyButton = event.target.closest('[data-buy]');
-    if (buyButton && !isMember()) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      showMembershipCheckout(buyButton);
-      return;
-    }
-
-    if (detailMessageButton && event.target.closest('#detailMessageSellerButton') && !isMember()) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (typeof listingDialog !== 'undefined' && listingDialog?.open) listingDialog.close();
-      showMembershipCheckout(detailMessageButton);
-    }
   }, true);
 
   sellForm?.addEventListener('submit', event => {
@@ -141,13 +125,6 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     showMembershipCheckout(sellForm.querySelector('[type="submit"]'));
-  }, true);
-
-  composeForm?.addEventListener('submit', event => {
-    if (isMember()) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    showMembershipCheckout(composeForm.querySelector('[type="submit"]'));
   }, true);
 
   window.addEventListener('flipora:membership-status', () => {
