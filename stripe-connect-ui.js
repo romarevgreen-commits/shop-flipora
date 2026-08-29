@@ -2,22 +2,35 @@
   const button = document.querySelector('#connectStripeButton');
   const payoutStatus = document.querySelector('#payoutStatus');
   const accountButton = document.querySelector('#accountButton');
+  const accountListButton = document.querySelector('#accountDialog [data-open-sell]');
   if (!button || typeof paymentRequest !== 'function') return;
 
   const ADMIN_EMAIL = 'romarevgreen@gmail.com';
   const STRIPE_PLATFORM_PROFILE_URL = 'https://dashboard.stripe.com/settings/connect/platform-profile';
   let refreshInFlight = false;
+  window.fliporaStripePayoutsReady = false;
+
+  function syncListingLock(ready) {
+    window.fliporaStripePayoutsReady = Boolean(ready);
+    if (accountListButton) {
+      accountListButton.disabled = !ready;
+      accountListButton.textContent = ready ? 'List a new item' : 'Connect Stripe first';
+    }
+    window.dispatchEvent(new CustomEvent('flipora:stripe-payout-status', {
+      detail: { ready: Boolean(ready) }
+    }));
+  }
 
   async function renderStripeConnectState() {
     if (!currentUser || refreshInFlight) return;
     refreshInFlight = true;
     try {
       const status = await paymentRequest('/.netlify/functions/connect-status');
-      if (status.connected) {
+      const ready = Boolean(status.payoutsEnabled);
+      syncListingLock(ready);
+      if (ready) {
         button.textContent = status.member ? 'Manage payout setup' : 'Manage Stripe setup';
-        if (payoutStatus) payoutStatus.textContent = status.member
-          ? 'Ready to receive payments'
-          : 'Stripe connected · membership required before payouts';
+        if (payoutStatus) payoutStatus.textContent = 'Connected · ready to list and receive payments';
       } else {
         button.textContent = status.onboardingStatus === 'not_started' ? 'Connect Stripe' : 'Continue Stripe setup';
         if (payoutStatus) {
@@ -29,11 +42,35 @@
         }
       }
     } catch (error) {
+      syncListingLock(false);
       console.error('Could not refresh Stripe Connect state', error);
     } finally {
       refreshInFlight = false;
     }
   }
+
+  window.requireStripeSellerConnection = async function requireStripeSellerConnection() {
+    try {
+      const status = await paymentRequest('/.netlify/functions/connect-status');
+      const ready = Boolean(status.payoutsEnabled);
+      syncListingLock(ready);
+      if (ready) return true;
+
+      const accountDialog = document.querySelector('#accountDialog');
+      if (accountDialog && !accountDialog.open) accountDialog.showModal();
+      if (typeof showToast === 'function') {
+        showToast(status.onboardingStatus === 'not_started'
+          ? 'Connect your seller account to Stripe before listing an item.'
+          : 'Finish Stripe verification before listing an item.');
+      }
+      setTimeout(renderStripeConnectState, 0);
+      return false;
+    } catch (error) {
+      syncListingLock(false);
+      if (typeof showToast === 'function') showToast(error.message || 'Could not verify Stripe payout setup.');
+      return false;
+    }
+  };
 
   button.addEventListener('click', async event => {
     event.preventDefault();
