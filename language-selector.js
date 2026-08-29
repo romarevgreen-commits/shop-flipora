@@ -74,7 +74,7 @@
     try {
       await loadScript('stripe-connect-ui.js?v=20260829-1', 'data-flipora-stripe-connect');
       await loadScript('item-purchase-details.js?v=20260827-1', 'data-flipora-item-details');
-      await loadScript('membership-access.js?v=20260826-buyer-seller-2', 'data-flipora-member-access');
+      await loadScript('membership-access.js?v=20260829-role-shipping-1', 'data-flipora-member-access');
       await loadScript('orders-dashboard.js?v=20260826-item-number-shipping-2', 'data-flipora-orders-dashboard');
       await loadScript('seller-activity.js?v=20260826-seller-chart-1', 'data-flipora-seller-activity');
       await loadScript('opportunity-membership.js?v=20260826-member-lock-1', 'data-flipora-opportunity-membership');
