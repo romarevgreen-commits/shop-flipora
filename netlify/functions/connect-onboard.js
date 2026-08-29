@@ -1,4 +1,4 @@
-const { stripe, stripeV2, recipientAccount, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
+const { stripeV2, recipientAccount, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
@@ -6,7 +6,7 @@ exports.handler = async (event) => {
     const user = await authenticatedUser(event);
     const profiles = await userRest(`profiles?id=eq.${encodeURIComponent(user.id)}&select=id,display_name,stripe_account_id,membership_active`, event);
     const profile = profiles?.[0];
-    if (!profile?.membership_active) throw new Error("Pay the $9.99 lifetime membership fee before connecting seller payouts");
+    if (!profile) throw new Error("Seller profile not found");
 
     let accountId = profile.stripe_account_id;
     if (accountId) {
@@ -45,21 +45,29 @@ exports.handler = async (event) => {
       });
     }
 
-    const link = await stripe().accountLinks.create({
-      account: accountId,
-      refresh_url: `${siteUrl()}/?stripe=refresh`,
-      return_url: `${siteUrl()}/?stripe=return`,
-      type: "account_onboarding",
-      collection_options: { fields: "eventually_due", future_requirements: "include" }
+    const link = await stripeV2("core/account_links", {
+      method: "POST",
+      body: JSON.stringify({
+        account: accountId,
+        use_case: {
+          type: "account_onboarding",
+          account_onboarding: {
+            configurations: ["recipient"],
+            refresh_url: `${siteUrl()}/?stripe=refresh`,
+            return_url: `${siteUrl()}/?stripe=return`,
+            collection_options: { fields: "eventually_due", future_requirements: "include" }
+          }
+        }
+      })
     });
-    return json(200, { url: link.url, accountId });
+
+    return json(200, { url: link.url, accountId, member: Boolean(profile.membership_active) });
   } catch (error) {
     console.error("Stripe Connect onboarding error:", error);
     const text = String(error.message || "");
-    if (/connect platform|signed up for connect|platform profile/i.test(text)) {
-      return json(400, { error: "Finish the Stripe Connect platform setup for Flipora in Stripe, then tap Connect Stripe again." });
+    if (error?.code === "accounts_v2_access_blocked" || /connect platform|signed up for connect|platform profile|loss|liabilit|responsibil/i.test(text)) {
+      return json(400, { error: "Finish the Stripe Connect marketplace setup for Flipora in Stripe, including platform responsibilities, then tap Connect Stripe again." });
     }
     return json(400, { error: text || "Could not start Stripe onboarding" });
   }
 };
-
