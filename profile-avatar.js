@@ -118,7 +118,29 @@
     sellerVideoRemoveButton = section.querySelector('#removeSellerVideo');
     const chooseSellerVideo = section.querySelector('#chooseSellerVideo');
 
-    chooseSellerVideo.addEventListener('click', () => sellerVideoInput.click());
+    chooseSellerVideo.addEventListener('click', () => {
+      // Clear the previous selection so Android fires change even when the
+      // seller chooses the same recording again.
+      sellerVideoInput.value = '';
+      sellerVideoInput.click();
+    });
+
+    sellerVideoPreview.addEventListener('error', () => {
+      const hadSavedVideo = !selectedVideoFile;
+      sellerVideoPreview.pause();
+      sellerVideoPreview.removeAttribute('src');
+      sellerVideoPreview.hidden = true;
+      if (hadSavedVideo) {
+        sellerVideoRemoveButton.hidden = false;
+        showToast('This saved video cannot play on this phone. Remove it, then record or choose an MP4 video.');
+      } else {
+        sellerVideoUploadButton.disabled = true;
+        selectedVideoFile = null;
+        if (selectedPreviewUrl) URL.revokeObjectURL(selectedPreviewUrl);
+        selectedPreviewUrl = '';
+        showToast('This video format cannot play. Choose an MP4 or WebM video.');
+      }
+    });
 
     sellerVideoInput.addEventListener('change', async () => {
       const file = sellerVideoInput.files?.[0];
@@ -289,8 +311,12 @@
       const url = data?.profile_video_url || '';
       sellerVideoPreview.hidden = !url;
       sellerVideoRemoveButton.hidden = !url;
-      if (url) sellerVideoPreview.src = url;
-      else sellerVideoPreview.removeAttribute('src');
+      if (url) {
+        sellerVideoPreview.src = url;
+        sellerVideoPreview.load();
+      } else {
+        sellerVideoPreview.removeAttribute('src');
+      }
     } catch (error) {
       console.error('Could not load seller video', error);
     }
