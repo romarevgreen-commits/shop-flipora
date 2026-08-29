@@ -4,6 +4,8 @@
   const accountButton = document.querySelector('#accountButton');
   if (!button || typeof paymentRequest !== 'function') return;
 
+  const ADMIN_EMAIL = 'romarevgreen@gmail.com';
+  const STRIPE_PLATFORM_PROFILE_URL = 'https://dashboard.stripe.com/settings/connect/platform-profile';
   let refreshInFlight = false;
 
   async function renderStripeConnectState() {
@@ -52,9 +54,19 @@
     try {
       const result = await paymentRequest('/.netlify/functions/connect-onboard', { method: 'POST' });
       if (!result?.url) throw new Error('Stripe did not return an onboarding link');
-      location.href = result.url;
+      location.assign(result.url);
     } catch (error) {
-      if (typeof showToast === 'function') showToast(error.message || 'Could not open Stripe setup');
+      const message = String(error?.message || 'Could not open Stripe setup');
+      const platformSetupRequired = /finish the stripe connect marketplace setup|platform responsibilities|loss liability/i.test(message);
+      const isAdmin = String(currentUser?.email || '').toLowerCase() === ADMIN_EMAIL;
+
+      if (platformSetupRequired && isAdmin) {
+        if (typeof showToast === 'function') showToast('Stripe needs the one-time Flipora platform setup. Opening it now…');
+        location.assign(STRIPE_PLATFORM_PROFILE_URL);
+        return;
+      }
+
+      if (typeof showToast === 'function') showToast(message);
       button.disabled = false;
       button.textContent = originalText || 'Connect Stripe';
       renderStripeConnectState();
