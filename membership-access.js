@@ -313,25 +313,48 @@
     }, true);
   }
 
-  document.addEventListener('click', event => {
-    const sellButton = event.target.closest('[data-open-sell]');
+  document.addEventListener('click', async event => {
+    const sellButton = event.target.closest('[data-open-sell], [data-start-category]');
     if (sellButton && !isMember()) {
       event.preventDefault();
       event.stopImmediatePropagation();
       showMembershipCheckout(sellButton);
       return;
     }
-    if (sellButton && isMember() && memberMode !== 'seller') {
-      saveMode('seller');
-      renderMemberAccess();
+    if (sellButton && isMember()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (memberMode !== 'seller') {
+        saveMode('seller');
+        renderMemberAccess();
+      }
+
+      const ready = typeof window.requireStripeSellerConnection === 'function'
+        ? await window.requireStripeSellerConnection()
+        : false;
+      if (!ready) return;
+
+      if (sellButton.dataset.startCategory) {
+        const category = document.querySelector('#sellForm select[name="category"]');
+        if (category) category.value = sellButton.dataset.startCategory;
+      }
+      if (accountDialog?.open) accountDialog.close();
+      if (typeof loadSellerVideoForSellForm === 'function') loadSellerVideoForSellForm();
+      const sellDialog = document.querySelector('#sellDialog');
+      if (sellDialog && !sellDialog.open) sellDialog.showModal();
     }
   }, true);
 
   sellForm?.addEventListener('submit', event => {
-    if (isMember()) return;
+    if (isMember() && window.fliporaStripePayoutsReady === true) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    showMembershipCheckout(sellForm.querySelector('[type="submit"]'));
+    if (!isMember()) {
+      showMembershipCheckout(sellForm.querySelector('[type="submit"]'));
+      return;
+    }
+    window.requireStripeSellerConnection?.();
   }, true);
 
   window.addEventListener('flipora:membership-status', () => {
