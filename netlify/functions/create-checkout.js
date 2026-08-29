@@ -11,12 +11,12 @@ exports.handler = async (event) => {
     const rows = await rest(`listings?id=eq.${encodeURIComponent(listingId)}&status=eq.active&select=id,title,price,seller_id`);
     const listing = rows?.[0];
     if (!listing) throw new Error("Listing is unavailable");
-    if (listing.seller_id === buyer.id) throw new Error("You cannot buy your own listing");
+    if (listing.seller_id === buyer.id) throw new Error("You cannot buy your own listing. Sign out and use a different buyer account.");
 
     const sellers = await rest(`profiles?id=eq.${encodeURIComponent(listing.seller_id)}&select=stripe_account_id,membership_active,stripe_onboarding_complete,stripe_payouts_enabled`);
     const seller = sellers?.[0];
-    if (!seller?.membership_active) throw new Error("Seller membership is not active");
-    if (!seller?.stripe_account_id) throw new Error("Seller payouts are not ready");
+    if (!seller?.membership_active) throw new Error("Checkout is waiting for this seller to activate payments. Buyers do not need a membership.");
+    if (!seller?.stripe_account_id) throw new Error("Checkout is waiting for this seller to finish Stripe payout setup.");
 
     const payoutState = recipientPayoutState(await recipientAccount(seller.stripe_account_id));
     await rest(`profiles?id=eq.${encodeURIComponent(listing.seller_id)}`, {
