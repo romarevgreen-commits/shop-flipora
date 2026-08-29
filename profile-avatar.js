@@ -142,27 +142,27 @@
       const probe = document.createElement('video');
       probe.preload = 'metadata';
       probe.playsInline = true;
-      probe.src = objectUrl;
       let durationResolved = false;
-      const rejectUnreadableVideo = () => {
+      const allowVideoWithoutDuration = () => {
         if (durationResolved) return;
         durationResolved = true;
-        URL.revokeObjectURL(objectUrl);
-        sellerVideoInput.value = '';
-        showToast('Could not read that video. Try recording or exporting it as MP4.');
+        showToast('Video ready. Tap Publish video to add it to your seller profile.');
       };
       const acceptDuration = duration => {
         if (durationResolved || !Number.isFinite(duration) || duration <= 0) return false;
         durationResolved = true;
         if (duration > 15.25) {
           URL.revokeObjectURL(objectUrl);
+          selectedPreviewUrl = '';
+          selectedVideoFile = null;
           sellerVideoInput.value = '';
           sellerVideoPreview.hidden = true;
           sellerVideoPreview.removeAttribute('src');
+          sellerVideoUploadButton.disabled = true;
           showToast('Your seller profile video must be 15 seconds or shorter.');
           return true;
         }
-        if (selectedPreviewUrl) URL.revokeObjectURL(selectedPreviewUrl);
+        if (selectedPreviewUrl && selectedPreviewUrl !== objectUrl) URL.revokeObjectURL(selectedPreviewUrl);
         selectedPreviewUrl = objectUrl;
         selectedVideoFile = file;
         sellerVideoPreview.src = objectUrl;
@@ -179,8 +179,19 @@
       };
       probe.ontimeupdate = () => acceptDuration(probe.duration);
       probe.ondurationchange = () => acceptDuration(probe.duration);
-      probe.onerror = rejectUnreadableVideo;
-      window.setTimeout(rejectUnreadableVideo, 12000);
+      probe.onerror = allowVideoWithoutDuration;
+
+      // Enable publishing immediately. Some Android recordings report an
+      // infinite or unavailable duration even though the video is valid.
+      // Duration validation still rejects a clip when the browser can read it.
+      selectedPreviewUrl = objectUrl;
+      selectedVideoFile = file;
+      sellerVideoPreview.src = objectUrl;
+      sellerVideoPreview.hidden = false;
+      sellerVideoUploadButton.disabled = false;
+      probe.src = objectUrl;
+      probe.load();
+      window.setTimeout(allowVideoWithoutDuration, 3000);
     });
 
     sellerVideoUploadButton.addEventListener('click', async () => {
@@ -303,4 +314,3 @@
     }
   });
 })();
-
