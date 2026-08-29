@@ -24,7 +24,7 @@ async function stripeV2(path, options = {}) {
     ...options,
     headers: {
       Authorization: `Bearer ${required("STRIPE_SECRET_KEY")}`,
-      "Stripe-Version": "2026-07-29.preview",
+      "Stripe-Version": "2026-07-29.dahlia",
       "Content-Type": "application/json",
       ...(options.headers || {})
     }
