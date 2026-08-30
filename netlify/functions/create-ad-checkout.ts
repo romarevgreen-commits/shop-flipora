@@ -1,10 +1,9 @@
-import Stripe from "stripe";
 import type { Config } from "@netlify/functions";
 
 const packages = {
-  starter: { name: "Flipora Starter Ad — 7 days", amount: 1900, days: 7, placement: "marketplace" },
-  business: { name: "Flipora Business Ad — 30 days", amount: 4900, days: 30, placement: "marketplace" },
-  featured: { name: "Flipora Featured Ad — 30 days", amount: 9900, days: 30, placement: "homepage-priority" }
+  starter: { name: "Flipora Starter Ad — 7 days", days: 7, placement: "marketplace" },
+  business: { name: "Flipora Business Ad — 30 days", days: 30, placement: "marketplace" },
+  featured: { name: "Flipora Featured Ad — 30 days", days: 30, placement: "homepage-priority" }
 } as const;
 
 const securityHeaders = {
@@ -22,7 +21,6 @@ const json = (status: number, body: Record<string, unknown>) => new Response(JSO
 });
 
 const siteUrl = () => Netlify.env.get("SITE_URL") || "https://shop-flipora.netlify.app";
-const randomLetters = () => Array.from({ length: 8 }, () => String.fromCharCode(97 + Math.floor(Math.random() * 26))).join("");
 
 function trustedOrigin(request: Request) {
   const origin = request.headers.get("origin");
@@ -55,9 +53,6 @@ export default async (request: Request) => {
     const profile = (await profileResponse.json())?.[0];
     if (!profile?.membership_active) return json(403, { error: "Lifetime membership is required before you can advertise" });
 
-    const secretKey = Netlify.env.get("STRIPE_SECRET_KEY");
-    if (!secretKey) throw new Error("Advertising checkout is not configured");
-
     const { packageId, businessName, message, destinationUrl } = await request.json();
     const selected = packages[packageId as keyof typeof packages];
     if (!selected) return json(400, { error: "Invalid advertising package" });
@@ -73,25 +68,20 @@ export default async (request: Request) => {
       return json(400, { error: "Enter a valid website or contact link" });
     }
 
-    const stripe = new Stripe(secretKey, { apiVersion: "2026-08-26.dahlia" });
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      customer_email: user.email,
-      integration_identifier: `flipora_ads_${randomLetters()}`,
-      line_items: [{
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          unit_amount: selected.amount,
-          product_data: { name: selected.name, description: `${selected.days}-day ${selected.placement} advertising placement` }
-        }
-      }],
-      success_url: `${siteUrl()}/?ad=success&session_id={CHECKOUT_SESSION_ID}#advertise`,
-      cancel_url: `${siteUrl()}/?ad=cancelled#advertise`,
-      metadata: { purchase_type: "advertisement", user_id: String(user.id), package_id: packageId, duration_days: String(selected.days), placement: selected.placement, business_name: cleanName, ad_message: cleanMessage, destination_url: cleanUrl }
+    const adRequest = {
+      admin_id: user.id,
+      action: "advertisement_submitted",
+      target_type: "advertisement",
+      target_id: `${user.id}-${Date.now()}`,
+      details: { package_id: packageId, package_name: selected.name, duration_days: selected.days, placement: selected.placement, business_name: cleanName, ad_message: cleanMessage, destination_url: cleanUrl, included_with_membership: true }
+    };
+    const saveResponse = await fetch(`${supabaseUrl}/rest/v1/admin_audit_log`, {
+      method: "POST",
+      headers: { apikey: supabaseSecret, Authorization: `Bearer ${supabaseSecret}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify(adRequest)
     });
-
-    return json(200, { url: session.url });
+    if (!saveResponse.ok) throw new Error("Could not save your advertisement for review");
+    return json(200, { success: true });
   } catch (error) {
     console.error("Advertising checkout error", error);
     return json(400, { error: error instanceof Error ? error.message : "Could not start advertising checkout" });
