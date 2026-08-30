@@ -7,6 +7,12 @@
   Cross-Origin-Opener-Policy: same-origin-allow-popups
   Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://translate.google.com https://*.googleapis.com https://*.gstatic.com; style-src 'self' 'unsafe-inline' https://*.googleapis.com https://*.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://*.google.com https://*.googleapis.com https://*.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google.com https://*.googleapis.com; media-src 'self' blob: https://*.supabase.co; font-src 'self' data: https://*.gstatic.com; frame-src https://*.stripe.com https://*.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self' https://*.stripe.com; upgrade-insecure-requests
 
+/
+  Cache-Control: no-store, max-age=0
+
+/stripe-connect-ui.js
+  Cache-Control: no-store, max-age=0
+
 /admin.html
   Cache-Control: no-store, max-age=0
 
