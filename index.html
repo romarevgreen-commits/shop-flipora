@@ -113,12 +113,12 @@
       <div class="advertise-copy">
         <p class="eyebrow">Grow your business</p>
         <h2>Add your ad to Flipora</h2>
-        <p>Lifetime members can reach local shoppers, sellers and business owners. Become a member, choose an advertising package and pay securely through Stripe.</p>
+        <p>Lifetime members can reach local shoppers, sellers and business owners. All advertising options below are included with the one-time $9.99 membership.</p>
         <ul><li>Business name and message</li><li>Website or contact link</li><li>Clear package duration</li></ul>
       </div>
       <div class="ad-package-grid" aria-label="Advertising packages">
         <article class="ad-package">
-          <span>Starter</span><h3>$19</h3><p class="ad-package-summary">A simple 7-day boost for a product, service or local event.</p>
+          <span>Starter</span><h3>Included</h3><p class="ad-package-summary">A simple 7-day boost for a product, service or local event.</p>
           <h4>Everything included:</h4>
           <ul class="ad-service-list">
             <li>7 consecutive days of advertising</li>
@@ -131,7 +131,7 @@
           <button class="button ad-checkout-button" data-ad-package="starter">Choose Starter</button>
         </article>
         <article class="ad-package featured">
-          <span>Best value · Business</span><h3>$49</h3><p class="ad-package-summary">A full month of visibility for growing local businesses.</p>
+          <span>Business</span><h3>Included</h3><p class="ad-package-summary">A full month of visibility for growing local businesses.</p>
           <h4>Everything in Starter, plus:</h4>
           <ul class="ad-service-list">
             <li>30 consecutive days of advertising</li>
@@ -144,7 +144,7 @@
           <button class="button ad-checkout-button" data-ad-package="business">Choose Business</button>
         </article>
         <article class="ad-package">
-          <span>Featured</span><h3>$99</h3><p class="ad-package-summary">Maximum 30-day exposure with priority homepage placement.</p>
+          <span>Featured</span><h3>Included</h3><p class="ad-package-summary">Maximum 30-day exposure with priority homepage placement.</p>
           <h4>Everything in Business, plus:</h4>
           <ul class="ad-service-list">
             <li>Priority placement on the Flipora homepage</li>
@@ -157,7 +157,7 @@
           <button class="button ad-checkout-button" data-ad-package="featured">Choose Featured</button>
         </article>
       </div>
-      <p class="ad-disclosure"><strong>Active Flipora membership required.</strong> Advertisements are reviewed before publication. Prohibited, misleading or unlawful ads will not be accepted.</p>
+      <p class="ad-disclosure"><strong>All three options are included with the one-time $9.99 lifetime membership.</strong> Advertisements are reviewed before publication. Prohibited, misleading or unlawful ads will not be accepted.</p>
     </section>
 
     <section class="steps" id="how-it-works">
@@ -210,11 +210,6 @@
         <input class="photo-source-input" id="photoInput" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple tabindex="-1" aria-hidden="true">
       </fieldset>
       <div class="photo-preview" id="photoPreview" aria-live="polite"><p>Take a new photo or choose one from your gallery or files.</p></div>
-      <section class="sell-profile-video" id="sellProfileVideoWrap" hidden>
-        <strong>Your seller video</strong>
-        <video id="sellProfileVideo" controls playsinline preload="metadata"></video>
-        <p>This profile video will also appear with your item for buyers.</p>
-      </section>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
       <p class="form-note">Listings are connected to your Flipora account. Flipora deducts a 12% marketplace fee from completed item sales; buyers are not charged an additional Flipora fee. Never share payment or private contact details in a public description.</p>
       <button class="button" value="default" type="submit">Publish listing</button>
@@ -235,10 +230,6 @@
         <p class="listing-location" id="detailLocation"></p>
         <a class="directions-link" id="detailDirections" target="_blank" rel="noopener">Get directions</a>
         <a class="seller-profile-link" id="detailSellerProfileLink" href="/reviews.html" hidden>View seller profile & reviews</a>
-        <section class="listing-seller-video" id="detailSellerVideoWrap" hidden>
-          <strong>Video from this seller</strong>
-          <video id="detailSellerVideo" controls playsinline preload="metadata"></video>
-        </section>
         <button class="buy-button" id="detailBuyButton" type="button">Buy securely</button>
         <button class="button button-secondary message-seller-button" id="detailMessageSellerButton" type="button" hidden>Message seller</button>
         <span class="sample-note" id="detailSampleNote" hidden>Sample listing · Navigation example</span>
@@ -317,20 +308,20 @@
       <label>Website or contact link<input name="destinationUrl" required type="url" maxlength="300" placeholder="https://yourwebsite.com"></label>
       <p class="form-note" id="adPackageSummary"></p>
       <p class="form-note">Your ad will be reviewed before it appears. Payment does not guarantee approval of prohibited or misleading content.</p>
-      <button class="button" type="submit">Continue to secure payment</button>
+      <button class="button" type="submit">Submit advertisement</button>
     </form>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
-  <script src="script.js?v=20260830-six-photos-video-fix-1" defer></script>
+  <script src="script.js?v=20260830-photo-only-membership-ads-1" defer></script>
   <script src="stripe-connect-ui.js?v=20260829-onboarding-open-1" defer></script>
   <script src="messaging.js?v=20260826-membership-sync-1" defer></script>
-  <script src="profile-avatar.js?v=20260830-video-mobile-fix-3" defer></script>
+  <script src="profile-avatar.js?v=20260830-photo-only-1" defer></script>
   <script src="enhancements.js?v=20260824-listing-gallery-1" defer></script>
   <script src="cover-photos.js?v=3" defer></script>
   <script src="listing-image-fixes.js?v=2-photo-viewer" defer></script>
-  <script src="advertising.js?v=2-members-only" defer></script>
+  <script src="advertising.js?v=20260830-membership-included-1" defer></script>
   <script src="language-selector.js?v=20260824-2"></script>
   <script src="https://translate.google.com/translate_a/element.js?cb=fliporaTranslateInit" async></script>
 </body>
