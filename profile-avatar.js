@@ -159,16 +159,28 @@
         sellerVideoInput.value = '';
         return showToast('Seller videos must be smaller than 100 MB.');
       }
+      if (!file.size) {
+        sellerVideoInput.value = '';
+        return showToast('This video file is empty. Record or choose the video again.');
+      }
 
       const objectUrl = URL.createObjectURL(file);
       const probe = document.createElement('video');
       probe.preload = 'metadata';
       probe.playsInline = true;
       let durationResolved = false;
-      const allowVideoWithoutDuration = () => {
+      const rejectUnreadableVideo = () => {
         if (durationResolved) return;
         durationResolved = true;
-        showToast('Video ready. Tap Publish video to add it to your seller profile.');
+        URL.revokeObjectURL(objectUrl);
+        selectedPreviewUrl = '';
+        selectedVideoFile = null;
+        sellerVideoInput.value = '';
+        sellerVideoPreview.pause();
+        sellerVideoPreview.removeAttribute('src');
+        sellerVideoPreview.hidden = true;
+        sellerVideoUploadButton.disabled = true;
+        showToast('This video cannot play. Record it again or choose an MP4 video.');
       };
       const acceptDuration = duration => {
         if (durationResolved || !Number.isFinite(duration) || duration <= 0) return false;
@@ -201,19 +213,16 @@
       };
       probe.ontimeupdate = () => acceptDuration(probe.duration);
       probe.ondurationchange = () => acceptDuration(probe.duration);
-      probe.onerror = allowVideoWithoutDuration;
+      probe.onerror = rejectUnreadableVideo;
 
-      // Enable publishing immediately. Some Android recordings report an
-      // infinite or unavailable duration even though the video is valid.
-      // Duration validation still rejects a clip when the browser can read it.
-      selectedPreviewUrl = objectUrl;
-      selectedVideoFile = file;
-      sellerVideoPreview.src = objectUrl;
-      sellerVideoPreview.hidden = false;
-      sellerVideoUploadButton.disabled = false;
+      // Do not enable Publish until the phone proves the recording is playable.
+      // This prevents empty or unsupported Android recordings from being saved
+      // as a permanent 0:00 seller video.
       probe.src = objectUrl;
       probe.load();
-      window.setTimeout(allowVideoWithoutDuration, 3000);
+      window.setTimeout(() => {
+        if (!durationResolved) rejectUnreadableVideo();
+      }, 5000);
     });
 
     sellerVideoUploadButton.addEventListener('click', async () => {
