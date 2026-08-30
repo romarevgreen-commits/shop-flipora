@@ -213,7 +213,7 @@
       <fieldset class="video-source-fieldset">
         <legend>Short item video <span class="label-hint">(optional · up to 30 seconds)</span></legend>
         <button class="button button-secondary" id="chooseVideoButton" type="button">🎥 Choose short video</button>
-        <input class="photo-source-input" id="videoInput" name="video" type="file" accept="video/mp4,video/webm,video/quicktime" tabindex="-1" aria-hidden="true">
+        <input class="photo-source-input" id="videoInput" name="video" type="file" accept="video/*" tabindex="-1" aria-hidden="true">
         <div class="video-preview" id="videoPreview" aria-live="polite"><p>Add one short video so buyers can see the item in action.</p></div>
       </fieldset>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
@@ -320,7 +320,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
-  <script src="script.js?v=20260830-short-seller-video-1" defer></script>
+  <script src="script.js?v=20260830-short-seller-video-3" defer></script>
   <script src="stripe-connect-ui.js?v=20260829-onboarding-open-1" defer></script>
   <script src="messaging.js?v=20260826-membership-sync-1" defer></script>
   <script src="profile-avatar.js?v=20260830-photo-only-1" defer></script>
