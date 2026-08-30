@@ -1,4 +1,16 @@
-const { stripe, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
+const { stripeV2, recipientAccount, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
+
+function recipientConfiguration() {
+  return {
+    recipient: {
+      capabilities: {
+        stripe_balance: {
+          stripe_transfers: { requested: true }
+        }
+      }
+    }
+  };
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
@@ -13,10 +25,11 @@ exports.handler = async (event) => {
     if (!profile) throw new Error("Seller profile not found");
 
     let accountId = profile.stripe_account_id;
+    let account = null;
 
     if (accountId) {
       try {
-        await stripe().accounts.retrieve(accountId);
+        account = await recipientAccount(accountId);
       } catch (error) {
         if (error?.code === "resource_missing" || error?.statusCode === 404) {
           accountId = null;
@@ -26,45 +39,65 @@ exports.handler = async (event) => {
       }
     }
 
-    if (!accountId) {
-      const account = await stripe().accounts.create({
-        type: "express",
-        country: "US",
-        email: user.email,
-        capabilities: {
-          transfers: { requested: true }
-        },
-        business_profile: {
-          url: siteUrl(),
-          product_description: "Sell items and receive marketplace payouts through Flipora."
-        },
-        metadata: { flipora_user_id: user.id }
-      });
-
-      accountId = account.id;
-      await rest(`profiles?id=eq.${encodeURIComponent(user.id)}`, {
-        method: "PATCH",
+    if (accountId && !account?.configuration?.recipient) {
+      account = await stripeV2(`core/accounts/${encodeURIComponent(accountId)}`, {
+        method: "POST",
         body: JSON.stringify({
-          stripe_account_id: accountId,
-          stripe_onboarding_complete: false,
-          stripe_payouts_enabled: false,
-          stripe_onboarding_status: "pending",
-          stripe_requirements_status: "currently_due",
-          stripe_status_updated_at: new Date().toISOString()
+          dashboard: account?.dashboard || "express",
+          configuration: recipientConfiguration(),
+          metadata: { flipora_user_id: user.id }
         })
       });
     }
 
-    const link = await stripe().accountLinks.create({
-      account: accountId,
-      refresh_url: `${siteUrl()}/?stripe=refresh`,
-      return_url: `${siteUrl()}/?stripe=return`,
-      type: "account_onboarding",
-      collection_options: {
-        fields: "eventually_due",
-        future_requirements: "include"
-      }
+    if (!accountId) {
+      account = await stripeV2("core/accounts", {
+        method: "POST",
+        headers: { "Idempotency-Key": `flipora-recipient-${user.id}` },
+        body: JSON.stringify({
+          contact_email: user.email,
+          display_name: profile.display_name || user.user_metadata?.display_name || user.email.split("@")[0],
+          dashboard: "express",
+          configuration: recipientConfiguration(),
+          identity: { country: "us" },
+          metadata: { flipora_user_id: user.id }
+        })
+      });
+      accountId = account.id;
+    }
+
+    await rest(`profiles?id=eq.${encodeURIComponent(user.id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        stripe_account_id: accountId,
+        stripe_onboarding_complete: false,
+        stripe_payouts_enabled: false,
+        stripe_onboarding_status: "pending",
+        stripe_requirements_status: "currently_due",
+        stripe_status_updated_at: new Date().toISOString()
+      })
     });
+
+    const link = await stripeV2("core/account_links", {
+      method: "POST",
+      body: JSON.stringify({
+        account: accountId,
+        use_case: {
+          type: "account_onboarding",
+          account_onboarding: {
+            configurations: ["recipient"],
+            refresh_url: `${siteUrl()}/?stripe=refresh`,
+            return_url: `${siteUrl()}/?stripe=return`,
+            collection_options: {
+              fields: "eventually_due",
+              future_requirements: "include"
+            }
+          }
+        }
+      })
+    });
+
+    if (!link?.url) throw new Error("Stripe did not return an onboarding link");
 
     return json(200, {
       url: link.url,
@@ -74,11 +107,8 @@ exports.handler = async (event) => {
   } catch (error) {
     console.error("Stripe Connect onboarding error:", error);
     const text = String(error.message || "");
-    if (/connect platform|signed up for connect|platform profile|responsibil/i.test(text)) {
-      return json(400, {
-        error: "Finish the Stripe Connect marketplace setup for Flipora in Stripe, then tap Connect Stripe again."
-      });
-    }
-    return json(400, { error: text || "Could not start Stripe onboarding" });
+    return json(400, {
+      error: text || "Could not start Stripe seller onboarding"
+    });
   }
 };
