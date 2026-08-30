@@ -2,7 +2,7 @@
   const buttons = document.querySelectorAll('[data-ad-package]');
   const dialog = document.querySelector('#adDialog');
   const form = document.querySelector('#adForm');
-  const packageLabels = { starter: '$19 — 7 days', business: '$49 — 30 days', featured: '$99 — 30-day featured placement' };
+  const packageLabels = { starter: 'Starter — 7 days · Included', business: 'Business — 30 days · Included', featured: 'Featured — 30-day priority placement · Included' };
   const notify = message => typeof window.showToast === 'function' ? window.showToast(message) : alert(message);
   const getMemberSession = async () => {
     const client = window.supabase?.createClient(window.FLIPORA_CONFIG.supabaseUrl, window.FLIPORA_CONFIG.supabasePublishableKey);
@@ -41,7 +41,7 @@
     const submit = form.querySelector('[type="submit"]');
     const originalText = submit.textContent;
     submit.disabled = true;
-    submit.textContent = 'Opening secure checkout…';
+    submit.textContent = 'Submitting…';
     try {
       const values = new FormData(form);
       const session = await getMemberSession();
@@ -50,15 +50,16 @@
         body: JSON.stringify({ packageId: values.get('packageId'), businessName: values.get('businessName'), message: values.get('message'), destinationUrl: values.get('destinationUrl') })
       });
       const result = await response.json();
-      if (!response.ok || !result.url) throw new Error(result.error || 'Could not start advertising checkout.');
-      location.href = result.url;
+      if (!response.ok || !result.success) throw new Error(result.error || 'Could not submit your advertisement.');
+      form.reset();
+      dialog.close();
+      notify('Advertisement submitted for review. It is included with your lifetime membership.');
+      submit.disabled = false;
+      submit.textContent = originalText;
     } catch (error) {
-      notify(error.message || 'Could not start advertising checkout.');
+      notify(error.message || 'Could not submit your advertisement.');
       submit.disabled = false;
       submit.textContent = originalText;
     }
   });
-  const status = new URLSearchParams(location.search).get('ad');
-  if (status === 'success') notify('Ad payment received! We will review your advertisement details.');
-  if (status === 'cancelled') notify('Advertising checkout cancelled. No payment was taken.');
 })();
