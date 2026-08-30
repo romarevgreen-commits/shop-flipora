@@ -1,4 +1,4 @@
-const { stripe, json, authenticatedUser, rest, siteUrl } = require("./_shared");
+const { stripe, recipientAccount, recipientPayoutState, json, authenticatedUser, rest, siteUrl } = require("./_shared");
 
 const PLATFORM_FEE_RATE = 0.12;
 const INTEGRATION_IDENTIFIER = "flipora_marketplace_qkzmpvha";
@@ -29,9 +29,9 @@ exports.handler = async (event) => {
       throw new Error("Checkout is waiting for this seller to finish Stripe payout setup.");
     }
 
-    let account;
+    let payoutState;
     try {
-      account = await stripe().accounts.retrieve(seller.stripe_account_id);
+      payoutState = recipientPayoutState(await recipientAccount(seller.stripe_account_id));
     } catch (error) {
       if (error?.code === "resource_missing" || error?.statusCode === 404) {
         await rest(`profiles?id=eq.${encodeURIComponent(listing.seller_id)}`, {
@@ -50,21 +50,14 @@ exports.handler = async (event) => {
       throw error;
     }
 
-    const transfersActive = account.capabilities?.transfers === "active";
-    const stripePayoutsEnabled = Boolean(account.payouts_enabled);
-    const detailsSubmitted = Boolean(account.details_submitted);
-    const hasPastDue = Array.isArray(account.requirements?.past_due) && account.requirements.past_due.length > 0;
-    const hasCurrentlyDue = Array.isArray(account.requirements?.currently_due) && account.requirements.currently_due.length > 0;
-    const requirementsStatus = hasPastDue ? "past_due" : hasCurrentlyDue ? "currently_due" : null;
-    const connected = Boolean(transfersActive && stripePayoutsEnabled && detailsSubmitted);
-
+    const connected = Boolean(payoutState.connected);
     await rest(`profiles?id=eq.${encodeURIComponent(listing.seller_id)}`, {
       method: "PATCH",
       body: JSON.stringify({
         stripe_onboarding_complete: connected,
         stripe_payouts_enabled: connected,
-        stripe_onboarding_status: connected ? "complete" : requirementsStatus || "pending",
-        stripe_requirements_status: requirementsStatus,
+        stripe_onboarding_status: connected ? "complete" : payoutState.requirementsStatus || payoutState.transfersStatus || "pending",
+        stripe_requirements_status: payoutState.requirementsStatus,
         stripe_status_updated_at: new Date().toISOString()
       })
     });
