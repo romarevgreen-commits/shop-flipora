@@ -1,4 +1,4 @@
-const { stripeV2, recipientAccount, json, authenticatedUser, userRest, rest, siteUrl } = require("./_shared");
+const { stripeV2, recipientAccount, json, authenticatedUser, userRest, rest, siteUrl, required } = require("./_shared");
 
 function recipientConfiguration() {
   return {
@@ -12,10 +12,31 @@ function recipientConfiguration() {
   };
 }
 
+async function verifyPlatformAccount() {
+  const response = await fetch("https://api.stripe.com/v1/account", {
+    headers: { Authorization: `Bearer ${required("STRIPE_SECRET_KEY")}` }
+  });
+  const body = await response.json();
+  if (!response.ok) {
+    throw new Error(body?.error?.message || "Could not verify Flipora Stripe account");
+  }
+
+  const expected = required("STRIPE_PLATFORM_ACCOUNT_ID");
+  if (body.id !== expected) {
+    const error = new Error(`Netlify Stripe key is connected to the wrong Stripe account (${body.id}). Flipora requires ${expected}.`);
+    error.code = "stripe_platform_mismatch";
+    throw error;
+  }
+
+  return body;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") return json(405, { error: "Method not allowed" });
 
   try {
+    await verifyPlatformAccount();
+
     const user = await authenticatedUser(event);
     const profiles = await userRest(
       `profiles?id=eq.${encodeURIComponent(user.id)}&select=id,display_name,stripe_account_id,membership_active`,
@@ -106,9 +127,9 @@ exports.handler = async (event) => {
     });
   } catch (error) {
     console.error("Stripe Connect onboarding error:", error);
-    const text = String(error.message || "");
     return json(400, {
-      error: text || "Could not start Stripe seller onboarding"
+      error: error.message || "Could not start Stripe seller onboarding",
+      errorCode: error.code || null
     });
   }
 };
