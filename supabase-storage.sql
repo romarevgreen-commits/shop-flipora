@@ -51,8 +51,8 @@ values (
   'listing-videos',
   'listing-videos',
   true,
-  26214400,
-  array['video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v', 'video/3gpp']
+  52428800,
+  array['video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v', 'video/3gpp', 'video/3gpp2', 'video/x-matroska', 'video/hevc']
 )
 on conflict (id) do update set
   public = excluded.public,
