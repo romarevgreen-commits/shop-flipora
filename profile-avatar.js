@@ -80,6 +80,7 @@
   const accountPanel = document.querySelector('#accountDialog .account-panel');
   const signOutButton = document.querySelector('#signOutButton');
   let sellerVideoInput = null;
+  let sellerVideoRecordInput = null;
   let sellerVideoPreview = null;
   let sellerVideoUploadButton = null;
   let sellerVideoRemoveButton = null;
@@ -103,9 +104,11 @@
     section.innerHTML = `
       <div><h3>Make a Video for Your Items</h3><p>Add a short video buyers can watch on your seller profile.</p></div>
       <video id="sellerVideoPreview" class="seller-video-preview" controls playsinline hidden></video>
-      <input id="sellerVideoInput" type="file" accept="video/*,.mp4,.mov,.webm,.m4v,.3gp" hidden>
+      <input id="sellerVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v,video/3gpp,.mp4,.mov,.webm,.m4v,.3gp" hidden>
+      <input id="sellerVideoRecordInput" type="file" accept="video/*" capture="environment" hidden>
       <div class="seller-video-actions">
-        <button class="button button-secondary" id="chooseSellerVideo" type="button">Record or choose video</button>
+        <button class="button button-secondary" id="recordSellerVideo" type="button">Record video</button>
+        <button class="button button-secondary" id="chooseSellerVideo" type="button">Choose video</button>
         <button class="button" id="uploadSellerVideo" type="button" disabled>Publish video</button>
         <button class="seller-video-remove" id="removeSellerVideo" type="button" hidden>Remove video</button>
       </div>
@@ -113,16 +116,22 @@
     `;
     accountPanel.insertBefore(section, signOutButton);
     sellerVideoInput = section.querySelector('#sellerVideoInput');
+    sellerVideoRecordInput = section.querySelector('#sellerVideoRecordInput');
     sellerVideoPreview = section.querySelector('#sellerVideoPreview');
     sellerVideoUploadButton = section.querySelector('#uploadSellerVideo');
     sellerVideoRemoveButton = section.querySelector('#removeSellerVideo');
     const chooseSellerVideo = section.querySelector('#chooseSellerVideo');
+    const recordSellerVideo = section.querySelector('#recordSellerVideo');
 
     chooseSellerVideo.addEventListener('click', () => {
       // Clear the previous selection so Android fires change even when the
       // seller chooses the same recording again.
       sellerVideoInput.value = '';
       sellerVideoInput.click();
+    });
+    recordSellerVideo.addEventListener('click', () => {
+      sellerVideoRecordInput.value = '';
+      sellerVideoRecordInput.click();
     });
 
     sellerVideoPreview.addEventListener('error', () => {
@@ -142,8 +151,8 @@
       }
     });
 
-    sellerVideoInput.addEventListener('change', async () => {
-      const file = sellerVideoInput.files?.[0];
+    const handleVideoSelection = async inputElement => {
+      const file = inputElement.files?.[0];
       selectedVideoFile = null;
       sellerVideoUploadButton.disabled = true;
       if (!file) return;
@@ -152,15 +161,15 @@
       const allowedExtensions = ['mp4','mov','webm','m4v','3gp'];
       const allowedTypes = ['video/mp4','video/webm','video/quicktime','video/x-m4v','video/3gpp','application/octet-stream',''];
       if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extensionFromName)) {
-        sellerVideoInput.value = '';
+        inputElement.value = '';
         return showToast('Choose an MP4, MOV, WebM, M4V, or 3GP video.');
       }
       if (file.size > 100 * 1024 * 1024) {
-        sellerVideoInput.value = '';
+        inputElement.value = '';
         return showToast('Seller videos must be smaller than 100 MB.');
       }
       if (!file.size) {
-        sellerVideoInput.value = '';
+        inputElement.value = '';
         return showToast('This video file is empty. Record or choose the video again.');
       }
 
@@ -175,7 +184,7 @@
         URL.revokeObjectURL(objectUrl);
         selectedPreviewUrl = '';
         selectedVideoFile = null;
-        sellerVideoInput.value = '';
+        inputElement.value = '';
         sellerVideoPreview.pause();
         sellerVideoPreview.removeAttribute('src');
         sellerVideoPreview.hidden = true;
@@ -189,7 +198,7 @@
           URL.revokeObjectURL(objectUrl);
           selectedPreviewUrl = '';
           selectedVideoFile = null;
-          sellerVideoInput.value = '';
+          inputElement.value = '';
           sellerVideoPreview.hidden = true;
           sellerVideoPreview.removeAttribute('src');
           sellerVideoUploadButton.disabled = true;
@@ -221,9 +230,19 @@
       probe.src = objectUrl;
       probe.load();
       window.setTimeout(() => {
-        if (!durationResolved) rejectUnreadableVideo();
-      }, 5000);
-    });
+        if (durationResolved) return;
+        durationResolved = true;
+        if (selectedPreviewUrl && selectedPreviewUrl !== objectUrl) URL.revokeObjectURL(selectedPreviewUrl);
+        selectedPreviewUrl = objectUrl;
+        selectedVideoFile = file;
+        sellerVideoPreview.src = objectUrl;
+        sellerVideoPreview.hidden = false;
+        sellerVideoUploadButton.disabled = false;
+        showToast('Video selected. Tap Publish video to upload it.');
+      }, 12000);
+    };
+    sellerVideoInput.addEventListener('change', () => handleVideoSelection(sellerVideoInput));
+    sellerVideoRecordInput.addEventListener('change', () => handleVideoSelection(sellerVideoRecordInput));
 
     sellerVideoUploadButton.addEventListener('click', async () => {
       if (!currentUser) return showToast('Sign in before publishing a seller video.');
@@ -271,6 +290,7 @@
         sellerVideoRemoveButton.hidden = false;
         selectedVideoFile = null;
         sellerVideoInput.value = '';
+        sellerVideoRecordInput.value = '';
         showToast('Your seller video is saved to your account and visible to buyers.');
       } catch (error) {
         showToast(error.message || 'Could not publish seller video.');
