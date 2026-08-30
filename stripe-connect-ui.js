@@ -1,9 +1,13 @@
 (() => {
-  const button = document.querySelector('#connectStripeButton');
+  const originalButton = document.querySelector('#connectStripeButton');
   const payoutStatus = document.querySelector('#payoutStatus');
   const accountButton = document.querySelector('#accountButton');
   const accountListButton = document.querySelector('#accountDialog [data-open-sell]');
-  if (!button || typeof paymentRequest !== 'function') return;
+  if (!originalButton || typeof paymentRequest !== 'function') return;
+
+  // Replace the button to remove the older membership-first click handler from script.js.
+  const button = originalButton.cloneNode(true);
+  originalButton.replaceWith(button);
 
   const ADMIN_EMAIL = 'romarevgreen@gmail.com';
   const STRIPE_PLATFORM_PROFILE_URL = 'https://dashboard.stripe.com/settings/connect/platform-profile';
@@ -26,23 +30,30 @@
     refreshInFlight = true;
     try {
       const status = await paymentRequest('/.netlify/functions/connect-status');
+      const connected = Boolean(status.connected);
       const ready = Boolean(status.payoutsEnabled);
       syncListingLock(ready);
-      if (ready) {
-        button.textContent = status.member ? 'Manage payout setup' : 'Manage Stripe setup';
-        if (payoutStatus) payoutStatus.textContent = 'Connected · ready to list and receive payments';
+
+      if (connected) {
+        button.textContent = 'Manage Stripe setup';
+        if (payoutStatus) {
+          payoutStatus.textContent = status.member
+            ? 'Connected · ready to list and receive payments'
+            : 'Stripe connected · membership required before payouts';
+        }
       } else {
         button.textContent = status.onboardingStatus === 'not_started' ? 'Connect Stripe' : 'Continue Stripe setup';
         if (payoutStatus) {
           payoutStatus.textContent = status.requirementsStatus === 'past_due'
             ? 'Action required in Stripe'
             : status.onboardingStatus === 'not_started'
-              ? 'Connect Stripe to set up seller payouts'
+              ? 'Connect Stripe now; membership is only required before payouts'
               : 'Stripe verification pending';
         }
       }
     } catch (error) {
       syncListingLock(false);
+      if (payoutStatus) payoutStatus.textContent = error.message || 'Could not check Stripe status';
       console.error('Could not refresh Stripe Connect state', error);
     } finally {
       refreshInFlight = false;
@@ -59,9 +70,13 @@
       const accountDialog = document.querySelector('#accountDialog');
       if (accountDialog && !accountDialog.open) accountDialog.showModal();
       if (typeof showToast === 'function') {
-        showToast(status.onboardingStatus === 'not_started'
-          ? 'Connect your seller account to Stripe before listing an item.'
-          : 'Finish Stripe verification before listing an item.');
+        if (!status.connected) {
+          showToast(status.onboardingStatus === 'not_started'
+            ? 'Connect your seller account to Stripe first.'
+            : 'Finish Stripe verification before listing an item.');
+        } else if (!status.member) {
+          showToast('Stripe is connected. Activate the lifetime membership before listing or receiving payouts.');
+        }
       }
       setTimeout(renderStripeConnectState, 0);
       return false;
@@ -88,10 +103,12 @@
     button.disabled = true;
     const originalText = button.textContent;
     button.textContent = 'Opening Stripe…';
+    if (payoutStatus) payoutStatus.textContent = 'Creating secure Stripe seller setup…';
+
     try {
       const result = await paymentRequest('/.netlify/functions/connect-onboard', { method: 'POST' });
       if (!result?.url) throw new Error('Stripe did not return an onboarding link');
-      location.assign(result.url);
+      window.location.href = result.url;
     } catch (error) {
       const message = String(error?.message || 'Could not open Stripe setup');
       const platformSetupRequired = /finish the stripe connect marketplace setup|platform responsibilities|loss liability/i.test(message);
@@ -99,10 +116,11 @@
 
       if (platformSetupRequired && isAdmin) {
         if (typeof showToast === 'function') showToast('Stripe needs the one-time Flipora platform setup. Opening it now…');
-        location.assign(STRIPE_PLATFORM_PROFILE_URL);
+        window.location.href = STRIPE_PLATFORM_PROFILE_URL;
         return;
       }
 
+      if (payoutStatus) payoutStatus.textContent = message;
       if (typeof showToast === 'function') showToast(message);
       button.disabled = false;
       button.textContent = originalText || 'Connect Stripe';
