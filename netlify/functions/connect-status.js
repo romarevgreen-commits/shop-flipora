@@ -16,8 +16,10 @@ exports.handler = async (event) => {
     if (!accountId) {
       return json(200, {
         member,
+        accountId: null,
         connected: false,
         payoutsEnabled: false,
+        transfersStatus: "not_started",
         onboardingStatus: "not_started",
         requirementsStatus: null
       });
@@ -41,8 +43,10 @@ exports.handler = async (event) => {
         });
         return json(200, {
           member,
+          accountId: null,
           connected: false,
           payoutsEnabled: false,
+          transfersStatus: "not_started",
           onboardingStatus: "not_started",
           requirementsStatus: null
         });
@@ -69,6 +73,7 @@ exports.handler = async (event) => {
 
     return json(200, {
       member,
+      accountId,
       connected,
       payoutsEnabled,
       transfersStatus: state.transfersStatus,
@@ -77,6 +82,9 @@ exports.handler = async (event) => {
     });
   } catch (error) {
     console.error("Stripe Connect status error:", error);
-    return json(400, { error: error.message || "Could not check Stripe status" });
+    return json(400, {
+      error: error.message || "Could not check Stripe status",
+      errorCode: error.code || null
+    });
   }
 };
