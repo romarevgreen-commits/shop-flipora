@@ -2,6 +2,11 @@ const { stripeV2, recipientAccount, json, authenticatedUser, userRest, rest, sit
 
 function recipientConfiguration() {
   return {
+    merchant: {
+      capabilities: {
+        card_payments: { requested: true }
+      }
+    },
     recipient: {
       capabilities: {
         stripe_balance: {
@@ -80,7 +85,7 @@ exports.handler = async (event) => {
     if (!accountId) {
       account = await stripeV2("core/accounts", {
         method: "POST",
-        headers: { "Idempotency-Key": `flipora-recipient-${user.id}` },
+        headers: { "Idempotency-Key": `flipora-seller-v2-${user.id}` },
         body: JSON.stringify({
           contact_email: user.email,
           display_name: profile.display_name || user.user_metadata?.display_name || user.email.split("@")[0],
@@ -118,7 +123,7 @@ exports.handler = async (event) => {
         use_case: {
           type: "account_onboarding",
           account_onboarding: {
-            configurations: ["recipient"],
+            configurations: ["merchant", "recipient"],
             refresh_url: `${siteUrl()}/?stripe=refresh`,
             return_url: `${siteUrl()}/?stripe=return`,
             collection_options: {
