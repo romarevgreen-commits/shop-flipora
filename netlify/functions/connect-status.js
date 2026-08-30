@@ -1,4 +1,4 @@
-const { stripe, json, authenticatedUser, userRest, rest } = require("./_shared");
+const { recipientAccount, recipientPayoutState, json, authenticatedUser, userRest, rest } = require("./_shared");
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "GET") return json(405, { error: "Method not allowed" });
@@ -23,9 +23,9 @@ exports.handler = async (event) => {
       });
     }
 
-    let account;
+    let state;
     try {
-      account = await stripe().accounts.retrieve(accountId);
+      state = recipientPayoutState(await recipientAccount(accountId));
     } catch (error) {
       if (error?.code === "resource_missing" || error?.statusCode === 404) {
         await rest(`profiles?id=eq.${encodeURIComponent(user.id)}`, {
@@ -50,15 +50,11 @@ exports.handler = async (event) => {
       throw error;
     }
 
-    const transfersActive = account.capabilities?.transfers === "active";
-    const stripePayoutsEnabled = Boolean(account.payouts_enabled);
-    const detailsSubmitted = Boolean(account.details_submitted);
-    const hasPastDue = Array.isArray(account.requirements?.past_due) && account.requirements.past_due.length > 0;
-    const hasCurrentlyDue = Array.isArray(account.requirements?.currently_due) && account.requirements.currently_due.length > 0;
-    const requirementsStatus = hasPastDue ? "past_due" : hasCurrentlyDue ? "currently_due" : null;
-    const connected = Boolean(transfersActive && stripePayoutsEnabled && detailsSubmitted);
+    const connected = Boolean(state.connected);
     const payoutsEnabled = Boolean(connected && member);
-    const onboardingStatus = connected ? "complete" : requirementsStatus || (detailsSubmitted ? "pending" : "currently_due");
+    const onboardingStatus = connected
+      ? "complete"
+      : state.requirementsStatus || state.transfersStatus || "pending";
 
     await rest(`profiles?id=eq.${encodeURIComponent(user.id)}`, {
       method: "PATCH",
@@ -66,7 +62,7 @@ exports.handler = async (event) => {
         stripe_onboarding_complete: connected,
         stripe_payouts_enabled: payoutsEnabled,
         stripe_onboarding_status: onboardingStatus,
-        stripe_requirements_status: requirementsStatus,
+        stripe_requirements_status: state.requirementsStatus,
         stripe_status_updated_at: new Date().toISOString()
       })
     });
@@ -74,11 +70,9 @@ exports.handler = async (event) => {
     return json(200, {
       member,
       connected,
-      detailsSubmitted,
-      transfersActive,
-      stripePayoutsEnabled,
       payoutsEnabled,
-      requirementsStatus,
+      transfersStatus: state.transfersStatus,
+      requirementsStatus: state.requirementsStatus,
       onboardingStatus
     });
   } catch (error) {
