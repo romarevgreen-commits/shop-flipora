@@ -65,6 +65,12 @@ exports.handler = async (event) => {
         method: "POST",
         body: JSON.stringify({
           dashboard: account?.dashboard || "express",
+          defaults: {
+            responsibilities: {
+              fees_collector: "application",
+              losses_collector: "application"
+            }
+          },
           configuration: recipientConfiguration(),
           metadata: { flipora_user_id: user.id }
         })
@@ -79,6 +85,12 @@ exports.handler = async (event) => {
           contact_email: user.email,
           display_name: profile.display_name || user.user_metadata?.display_name || user.email.split("@")[0],
           dashboard: "express",
+          defaults: {
+            responsibilities: {
+              fees_collector: "application",
+              losses_collector: "application"
+            }
+          },
           configuration: recipientConfiguration(),
           identity: { country: "us" },
           metadata: { flipora_user_id: user.id }
