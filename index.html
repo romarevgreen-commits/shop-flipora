@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#5b35f2">
   <title>Flipora Marketplace — Buy quick! Sell quicker!</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260830-six-photos-video-fix-1">
+  <link rel="stylesheet" href="styles.css?v=20260830-short-seller-video-1">
   <link rel="stylesheet" href="opportunities.css?v=20260824-photo-cards-1">
   <link rel="stylesheet" href="advertising.css?v=20260824-package-details-1">
 </head>
@@ -210,6 +210,12 @@
         <input class="photo-source-input" id="photoInput" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple tabindex="-1" aria-hidden="true">
       </fieldset>
       <div class="photo-preview" id="photoPreview" aria-live="polite"><p>Take a new photo or choose one from your gallery or files.</p></div>
+      <fieldset class="video-source-fieldset">
+        <legend>Short item video <span class="label-hint">(optional · up to 30 seconds)</span></legend>
+        <button class="button button-secondary" id="chooseVideoButton" type="button">🎥 Choose short video</button>
+        <input class="photo-source-input" id="videoInput" name="video" type="file" accept="video/mp4,video/webm,video/quicktime" tabindex="-1" aria-hidden="true">
+        <div class="video-preview" id="videoPreview" aria-live="polite"><p>Add one short video so buyers can see the item in action.</p></div>
+      </fieldset>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
       <p class="form-note">Listings are connected to your Flipora account. Flipora deducts a 12% marketplace fee from completed item sales; buyers are not charged an additional Flipora fee. Never share payment or private contact details in a public description.</p>
       <button class="button" value="default" type="submit">Publish listing</button>
@@ -314,7 +320,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="config.js?v=20260823-1515" defer></script>
-  <script src="script.js?v=20260830-photo-only-membership-ads-1" defer></script>
+  <script src="script.js?v=20260830-short-seller-video-1" defer></script>
   <script src="stripe-connect-ui.js?v=20260829-onboarding-open-1" defer></script>
   <script src="messaging.js?v=20260826-membership-sync-1" defer></script>
   <script src="profile-avatar.js?v=20260830-photo-only-1" defer></script>
