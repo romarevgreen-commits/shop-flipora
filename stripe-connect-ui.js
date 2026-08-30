@@ -5,13 +5,14 @@
   const accountListButton = document.querySelector('#accountDialog [data-open-sell]');
   if (!originalButton || typeof paymentRequest !== 'function') return;
 
-  // Replace the button to remove the older membership-first click handler from script.js.
   const button = originalButton.cloneNode(true);
   originalButton.replaceWith(button);
 
   const ADMIN_EMAIL = 'romarevgreen@gmail.com';
   const STRIPE_PLATFORM_PROFILE_URL = 'https://dashboard.stripe.com/settings/connect/platform-profile';
+  const stripeReturnMarker = new URLSearchParams(location.search).get('stripe');
   let refreshInFlight = false;
+  let returnStatusShown = false;
   window.fliporaStripePayoutsReady = false;
 
   function syncListingLock(ready) {
@@ -25,7 +26,20 @@
     }));
   }
 
-  async function renderStripeConnectState() {
+  function statusSummary(status) {
+    if (status.connected) {
+      return status.member
+        ? 'Stripe connected successfully · seller payouts are ready.'
+        : 'Stripe connected successfully · activate the lifetime membership before payouts.';
+    }
+
+    const transfer = status.transfersStatus || 'unknown';
+    const requirements = status.requirementsStatus || 'none reported';
+    const account = status.accountId ? ` · account ${status.accountId}` : '';
+    return `Stripe returned, but seller payouts are not active yet. Transfer status: ${transfer}. Requirements: ${requirements}${account}.`;
+  }
+
+  async function renderStripeConnectState({ forceReturnMessage = false } = {}) {
     if (!currentUser || refreshInFlight) return;
     refreshInFlight = true;
     try {
@@ -33,6 +47,15 @@
       const connected = Boolean(status.connected);
       const ready = Boolean(status.payoutsEnabled);
       syncListingLock(ready);
+
+      if (forceReturnMessage || stripeReturnMarker) {
+        if (payoutStatus) payoutStatus.textContent = statusSummary(status);
+        const accountDialog = document.querySelector('#accountDialog');
+        if (accountDialog && !accountDialog.open) accountDialog.showModal();
+        button.textContent = connected ? 'Manage Stripe setup' : 'Continue Stripe setup';
+        returnStatusShown = true;
+        return;
+      }
 
       if (connected) {
         button.textContent = 'Manage Stripe setup';
@@ -48,12 +71,15 @@
             ? 'Action required in Stripe'
             : status.onboardingStatus === 'not_started'
               ? 'Connect Stripe now; membership is only required before payouts'
-              : 'Stripe verification pending';
+              : `Stripe verification pending · transfer status: ${status.transfersStatus || 'unknown'}`;
         }
       }
     } catch (error) {
       syncListingLock(false);
-      if (payoutStatus) payoutStatus.textContent = error.message || 'Could not check Stripe status';
+      const message = error.message || 'Could not check Stripe status';
+      if (payoutStatus) payoutStatus.textContent = `Stripe status error: ${message}`;
+      const accountDialog = document.querySelector('#accountDialog');
+      if (stripeReturnMarker && accountDialog && !accountDialog.open) accountDialog.showModal();
       console.error('Could not refresh Stripe Connect state', error);
     } finally {
       refreshInFlight = false;
@@ -69,20 +95,11 @@
 
       const accountDialog = document.querySelector('#accountDialog');
       if (accountDialog && !accountDialog.open) accountDialog.showModal();
-      if (typeof showToast === 'function') {
-        if (!status.connected) {
-          showToast(status.onboardingStatus === 'not_started'
-            ? 'Connect your seller account to Stripe first.'
-            : 'Finish Stripe verification before listing an item.');
-        } else if (!status.member) {
-          showToast('Stripe is connected. Activate the lifetime membership before listing or receiving payouts.');
-        }
-      }
-      setTimeout(renderStripeConnectState, 0);
+      if (payoutStatus) payoutStatus.textContent = statusSummary(status);
       return false;
     } catch (error) {
       syncListingLock(false);
-      if (typeof showToast === 'function') showToast(error.message || 'Could not verify Stripe payout setup.');
+      if (payoutStatus) payoutStatus.textContent = `Stripe status error: ${error.message || 'Could not verify payout setup.'}`;
       return false;
     }
   };
@@ -115,23 +132,24 @@
       const isAdmin = String(currentUser?.email || '').toLowerCase() === ADMIN_EMAIL;
 
       if (platformSetupRequired && isAdmin) {
-        if (typeof showToast === 'function') showToast('Stripe needs the one-time Flipora platform setup. Opening it now…');
+        if (payoutStatus) payoutStatus.textContent = 'Stripe needs the one-time Flipora platform setup.';
         window.location.href = STRIPE_PLATFORM_PROFILE_URL;
         return;
       }
 
-      if (payoutStatus) payoutStatus.textContent = message;
-      if (typeof showToast === 'function') showToast(message);
+      if (payoutStatus) payoutStatus.textContent = `Stripe connection error: ${message}`;
       button.disabled = false;
       button.textContent = originalText || 'Connect Stripe';
-      renderStripeConnectState();
     }
   }, true);
 
-  window.addEventListener('flipora:membership-status', () => setTimeout(renderStripeConnectState, 0));
-  accountButton?.addEventListener('click', () => setTimeout(renderStripeConnectState, 120));
+  window.addEventListener('flipora:membership-status', () => setTimeout(() => renderStripeConnectState(), 0));
+  accountButton?.addEventListener('click', () => setTimeout(() => renderStripeConnectState(), 120));
   db.auth.onAuthStateChange((_event, session) => {
-    if (session?.user) setTimeout(renderStripeConnectState, 200);
+    if (session?.user) {
+      setTimeout(() => renderStripeConnectState({ forceReturnMessage: Boolean(stripeReturnMarker) }), 250);
+    }
   });
-  setTimeout(renderStripeConnectState, 350);
+
+  setTimeout(() => renderStripeConnectState({ forceReturnMessage: Boolean(stripeReturnMarker && !returnStatusShown) }), 450);
 })();
