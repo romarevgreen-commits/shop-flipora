@@ -80,23 +80,41 @@
     }
   }
 
-  detailButton.addEventListener('click', () => {
+  detailButton.addEventListener('click', async () => {
     if (!currentUser) {
       listingDialog.close();
       openAuth('signin');
-      document.querySelector('#authMessage').textContent = 'Sign in to message this seller.';
+      document.querySelector('#authMessage').textContent = 'Sign in to email this seller.';
       return;
     }
     if (detailButton.dataset.sellerId === currentUser.id) {
       showToast('This is your own listing.');
       return;
     }
-    composeForm.elements.listingId.value = detailButton.dataset.listingId;
-    composeForm.elements.sellerId.value = detailButton.dataset.sellerId;
-    document.querySelector('#messageSellerTitle').textContent = 'Ask about ' + detailButton.dataset.listingTitle;
-    composeForm.elements.message.value = '';
-    listingDialog.close();
-    composeDialog.showModal();
+
+    detailButton.disabled = true;
+    const originalText = detailButton.textContent;
+    detailButton.textContent = 'Opening email…';
+    try {
+      const { data, error } = await db.from('profiles')
+        .select('contact_email')
+        .eq('id', detailButton.dataset.sellerId)
+        .maybeSingle();
+      if (error) throw error;
+      const sellerEmail = String(data?.contact_email || '').trim();
+      if (!sellerEmail) {
+        showToast('This seller has not added a contact email yet.');
+        return;
+      }
+      const subject = 'Question about ' + (detailButton.dataset.listingTitle || 'your Flipora listing');
+      listingDialog.close();
+      location.href = 'mailto:' + encodeURIComponent(sellerEmail) + '?subject=' + encodeURIComponent(subject);
+    } catch (error) {
+      showToast(error.message || 'Could not open the seller email.');
+    } finally {
+      detailButton.disabled = false;
+      detailButton.textContent = originalText;
+    }
   });
 
   document.querySelector('[data-close-message-seller]').addEventListener('click', () => composeDialog.close());
