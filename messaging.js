@@ -1,83 +1,43 @@
 (() => {
   const detailButton = document.querySelector('#detailMessageSellerButton');
-  const composeDialog = document.querySelector('#messageSellerDialog');
-  const composeForm = document.querySelector('#messageSellerForm');
-  const openMessagesButton = document.querySelector('#openMessagesButton');
-  const messageList = document.querySelector('#sellerMessageList');
-  const accessText = document.querySelector('#messageAccessText');
-  const headerBadge = document.querySelector('#headerMessageBadge');
-  const profileBadge = document.querySelector('#profileMessageBadge');
+  if (!detailButton) return;
 
-  function setBadge(count) {
-    const value = Number(count || 0);
-    [headerBadge, profileBadge].forEach(badge => {
-      badge.hidden = value < 1;
-      badge.textContent = value > 99 ? '99+' : String(value);
-      badge.setAttribute('aria-label', value + ' unread buyer messages');
-    });
+  let lookupToken = 0;
+
+  function openEmail(email, title) {
+    const subject = 'Question about ' + (title || 'your Flipora listing');
+    const mailto = 'mailto:' + encodeURIComponent(email) + '?subject=' + encodeURIComponent(subject);
+    const link = document.createElement('a');
+    link.href = mailto;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 
-  function listingTitle(id) {
-    return listings.find(item => String(item.id) === String(id))?.title || 'Listing #' + id;
-  }
+  async function loadSellerEmail() {
+    const sellerId = detailButton.dataset.sellerId;
+    const token = ++lookupToken;
+    detailButton.dataset.sellerEmail = '';
+    detailButton.textContent = 'Finding seller email…';
+    if (!sellerId) return;
 
-  async function refreshSellerMessages() {
-    if (!currentUser) {
-      setBadge(0);
-      accessText.textContent = 'Sign in to see notifications';
-      messageList.hidden = true;
-      return;
-    }
-
-    const { data: notice } = await db.from('seller_message_notifications')
-      .select('unread_count')
-      .eq('seller_id', currentUser.id)
+    const { data, error } = await db.from('profiles')
+      .select('contact_email')
+      .eq('id', sellerId)
       .maybeSingle();
-    setBadge(notice?.unread_count || 0);
+    if (token !== lookupToken || detailButton.dataset.sellerId !== sellerId) return;
 
-    if (!membershipActive) {
-      accessText.textContent = 'Messages unlock with seller membership';
-      openMessagesButton.textContent = 'Become a member to open';
-      messageList.hidden = true;
+    const email = String(data?.contact_email || '').trim();
+    if (error || !email) {
+      detailButton.textContent = 'Seller email unavailable';
+      detailButton.disabled = true;
       return;
     }
-
-    accessText.textContent = notice?.unread_count ? notice.unread_count + ' unread' : 'Membership active';
-    openMessagesButton.textContent = messageList.hidden ? 'Open messages' : 'Refresh messages';
-    if (!messageList.hidden) await loadMessageContents();
-  }
-
-  async function loadMessageContents() {
-    messageList.hidden = false;
-    messageList.innerHTML = '<p class="seller-message-empty">Loading messages…</p>';
-    const { data, error } = await db.from('listing_messages')
-      .select('id,listing_id,buyer_email,body,read_at,created_at')
-      .eq('seller_id', currentUser.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
-    if (error) {
-      messageList.innerHTML = '<p class="seller-message-empty">' + escapeHtml(error.message) + '</p>';
-      return;
-    }
-    if (!data?.length) {
-      messageList.innerHTML = '<p class="seller-message-empty">No buyer messages yet.</p>';
-      return;
-    }
-    messageList.innerHTML = data.map(message => `
-      <article class="seller-message ${message.read_at ? '' : 'unread'}">
-        <div class="seller-message-meta"><strong>${escapeHtml(listingTitle(message.listing_id))}</strong><time>${new Date(message.created_at).toLocaleString()}</time></div>
-        <p>${escapeHtml(message.body)}</p>
-        <a class="seller-reply-link" href="mailto:${encodeURIComponent(message.buyer_email)}?subject=${encodeURIComponent('Re: ' + listingTitle(message.listing_id))}">Reply by email</a>
-      </article>
-    `).join('');
-    const unreadIds = data.filter(message => !message.read_at).map(message => message.id);
-    if (unreadIds.length) {
-      await db.from('listing_messages').update({ read_at: new Date().toISOString() })
-        .eq('seller_id', currentUser.id)
-        .in('id', unreadIds);
-      setBadge(0);
-      accessText.textContent = 'Membership active';
-    }
+    detailButton.dataset.sellerEmail = email;
+    detailButton.textContent = 'Email ' + email;
+    detailButton.disabled = false;
+    detailButton.setAttribute('aria-label', 'Email seller at ' + email);
   }
 
   detailButton.addEventListener('click', async () => {
@@ -92,64 +52,20 @@
       return;
     }
 
-    detailButton.disabled = true;
-    const originalText = detailButton.textContent;
-    detailButton.textContent = 'Opening email…';
-    try {
-      const { data, error } = await db.from('profiles')
-        .select('contact_email')
-        .eq('id', detailButton.dataset.sellerId)
-        .maybeSingle();
-      if (error) throw error;
-      const sellerEmail = String(data?.contact_email || '').trim();
-      if (!sellerEmail) {
-        showToast('This seller has not added a contact email yet.');
-        return;
-      }
-      const subject = 'Question about ' + (detailButton.dataset.listingTitle || 'your Flipora listing');
-      listingDialog.close();
-      location.href = 'mailto:' + encodeURIComponent(sellerEmail) + '?subject=' + encodeURIComponent(subject);
-    } catch (error) {
-      showToast(error.message || 'Could not open the seller email.');
-    } finally {
-      detailButton.disabled = false;
-      detailButton.textContent = originalText;
+    let email = detailButton.dataset.sellerEmail;
+    if (!email) {
+      await loadSellerEmail();
+      email = detailButton.dataset.sellerEmail;
     }
+    if (!email) {
+      showToast('This seller email is unavailable.');
+      return;
+    }
+    openEmail(email, detailButton.dataset.listingTitle);
   });
 
-  document.querySelector('[data-close-message-seller]').addEventListener('click', () => composeDialog.close());
-
-  composeForm.addEventListener('submit', async event => {
-    event.preventDefault();
-    if (!currentUser) return openAuth('signin');
-    const submit = composeForm.querySelector('[type="submit"]');
-    const form = new FormData(composeForm);
-    submit.disabled = true;
-    submit.textContent = 'Sending…';
-    const payload = {
-      listing_id: Number(form.get('listingId')),
-      seller_id: String(form.get('sellerId')),
-      buyer_id: currentUser.id,
-      buyer_email: currentUser.email,
-      body: String(form.get('message')).trim()
-    };
-    const { error } = await db.from('listing_messages').insert(payload);
-    submit.disabled = false;
-    submit.textContent = 'Send message';
-    if (error) return showToast(error.message);
-    composeDialog.close();
-    composeForm.reset();
-    showToast('Your message was sent to the seller.');
+  new MutationObserver(loadSellerEmail).observe(detailButton, {
+    attributes: true,
+    attributeFilter: ['data-seller-id']
   });
-
-  openMessagesButton.addEventListener('click', async () => {
-    if (!membershipActive) return startMembershipCheckout(openMessagesButton);
-    await loadMessageContents();
-  });
-
-  document.querySelector('#accountButton').addEventListener('click', () => window.setTimeout(refreshSellerMessages, 400));
-  window.addEventListener('flipora:membership-status', refreshSellerMessages);
-  db.auth.onAuthStateChange(() => window.setTimeout(refreshSellerMessages, 700));
-  window.setInterval(() => { if (currentUser) refreshSellerMessages(); }, 60000);
 })();
-
