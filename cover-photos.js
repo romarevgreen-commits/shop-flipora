@@ -17,21 +17,61 @@
   const heroArt = document.querySelector('.hero-art');
   if (!heroArt) return;
   heroArt.className = 'hero-art hero-photo-wall';
-  heroArt.setAttribute('aria-label', 'Photo showcase of vehicles sold on Flipora');
+  heroArt.setAttribute('aria-label', 'Photo showcase of sold marketplace items');
   heroArt.innerHTML = `
     <figure class="cover-photo cover-photo-one">
-      <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=86" alt="Silver vehicle marked sold on Flipora" loading="eager" referrerpolicy="no-referrer">
+      <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=86" alt="Wireless headphones sold on a marketplace" loading="eager" referrerpolicy="no-referrer">
       <span class="cover-sold-badge">Sold</span>
     </figure>
     <figure class="cover-photo cover-photo-two">
-      <img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=900&q=86" alt="Red vehicle marked sold on Flipora" loading="eager" referrerpolicy="no-referrer">
+      <img src="https://images.unsplash.com/photo-1484101403633-562f891dc89a?auto=format&fit=crop&w=900&q=86" alt="Home furniture sold on a marketplace" loading="eager" referrerpolicy="no-referrer">
       <span class="cover-sold-badge">Sold</span>
     </figure>
     <figure class="cover-photo cover-photo-three">
-      <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=86" alt="White vehicle marked sold on Flipora" loading="eager" referrerpolicy="no-referrer">
+      <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=86" alt="Camera sold on a marketplace" loading="eager" referrerpolicy="no-referrer">
       <span class="cover-sold-badge">Sold</span>
     </figure>
   `;
+})();
+
+// Show sold vehicle examples in their own two-column section.
+(() => {
+  const browse = document.querySelector('#browse');
+  if (!browse || document.querySelector('#soldVehicles')) return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .sold-vehicles-section{padding:72px clamp(14px,4vw,72px);background:#f6f3ff}
+    .sold-vehicles-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:24px}
+    .sold-vehicles-heading h2{margin:4px 0 0;font-size:clamp(1.8rem,4vw,3rem);color:#18142b}
+    .sold-vehicles-heading p{margin:0;color:var(--muted)}
+    .sold-vehicles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+    .sold-vehicle-card{position:relative;overflow:hidden;border-radius:26px;background:#fff;box-shadow:0 14px 38px rgba(31,24,74,.12)}
+    .sold-vehicle-card img{display:block;width:100%;height:clamp(220px,30vw,360px);object-fit:cover}
+    .sold-vehicle-copy{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px}
+    .sold-vehicle-copy h3{margin:0;color:#18142b;font-size:1.05rem}
+    .sold-vehicle-copy span{flex:none;background:#18142b;color:#fff;border-radius:999px;padding:7px 12px;font-size:.72rem;font-weight:950;letter-spacing:.09em;text-transform:uppercase}
+    @media(max-width:620px){.sold-vehicles-section{padding:52px 12px}.sold-vehicles-heading{align-items:start;flex-direction:column}.sold-vehicles-grid{gap:10px}.sold-vehicle-card{border-radius:18px}.sold-vehicle-card img{height:160px}.sold-vehicle-copy{padding:12px;align-items:flex-start;flex-direction:column}.sold-vehicle-copy h3{font-size:.84rem}.sold-vehicle-copy span{font-size:.62rem;padding:6px 9px}}
+  `;
+  document.head.appendChild(style);
+
+  const section = document.createElement('section');
+  section.className = 'sold-vehicles-section';
+  section.id = 'soldVehicles';
+  section.setAttribute('aria-labelledby', 'soldVehiclesTitle');
+  section.innerHTML = `
+    <div class="sold-vehicles-heading">
+      <div><p class="eyebrow">Recent marketplace examples</p><h2 id="soldVehiclesTitle">Sold vehicles</h2></div>
+      <p>Examples of vehicles that can be listed and sold on Flipora.</p>
+    </div>
+    <div class="sold-vehicles-grid">
+      <article class="sold-vehicle-card"><img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1100&q=86" alt="Silver sports vehicle marked sold" loading="lazy" referrerpolicy="no-referrer"><div class="sold-vehicle-copy"><h3>Silver sports vehicle</h3><span>Sold</span></div></article>
+      <article class="sold-vehicle-card"><img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1100&q=86" alt="Red vehicle marked sold" loading="lazy" referrerpolicy="no-referrer"><div class="sold-vehicle-copy"><h3>Red performance vehicle</h3><span>Sold</span></div></article>
+      <article class="sold-vehicle-card"><img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1100&q=86" alt="White vehicle marked sold" loading="lazy" referrerpolicy="no-referrer"><div class="sold-vehicle-copy"><h3>White family vehicle</h3><span>Sold</span></div></article>
+      <article class="sold-vehicle-card"><img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&w=1100&q=86" alt="Luxury vehicle marked sold" loading="lazy" referrerpolicy="no-referrer"><div class="sold-vehicle-copy"><h3>Luxury vehicle</h3><span>Sold</span></div></article>
+    </div>
+  `;
+  browse.insertAdjacentElement('beforebegin', section);
 })();
 
 // Make Explore denser, easier to search, and reset stale filters after publishing.
