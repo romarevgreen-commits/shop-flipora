@@ -17,18 +17,18 @@
   const heroArt = document.querySelector('.hero-art');
   if (!heroArt) return;
   heroArt.className = 'hero-art hero-photo-wall';
-  heroArt.setAttribute('aria-label', 'Photo showcase of sold marketplace items');
+  heroArt.setAttribute('aria-label', 'Photo showcase of vehicles sold on Flipora');
   heroArt.innerHTML = `
     <figure class="cover-photo cover-photo-one">
-      <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=86" alt="Wireless headphones sold on a marketplace" loading="eager" referrerpolicy="no-referrer">
+      <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=900&q=86" alt="Silver vehicle marked sold on Flipora" loading="eager" referrerpolicy="no-referrer">
       <span class="cover-sold-badge">Sold</span>
     </figure>
     <figure class="cover-photo cover-photo-two">
-      <img src="https://images.unsplash.com/photo-1484101403633-562f891dc89a?auto=format&fit=crop&w=900&q=86" alt="Home furniture sold on a marketplace" loading="eager" referrerpolicy="no-referrer">
+      <img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=900&q=86" alt="Red vehicle marked sold on Flipora" loading="eager" referrerpolicy="no-referrer">
       <span class="cover-sold-badge">Sold</span>
     </figure>
     <figure class="cover-photo cover-photo-three">
-      <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=86" alt="Camera sold on a marketplace" loading="eager" referrerpolicy="no-referrer">
+      <img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=900&q=86" alt="White vehicle marked sold on Flipora" loading="eager" referrerpolicy="no-referrer">
       <span class="cover-sold-badge">Sold</span>
     </figure>
   `;
