@@ -277,8 +277,8 @@
         <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
       </section>
       <section class="seller-contact-email-card">
-        <div><strong>Seller contact email</strong><span>Buyers will open this email directly when they tap “Message seller.”</span></div>
-        <label><span class="sr-only">Seller contact email</span><input id="sellerContactEmailInput" type="email" maxlength="254" autocomplete="email" placeholder="seller@example.com"><button class="button button-small" id="saveSellerContactEmail" type="button">Save email</button></label>
+        <div><strong>Seller signup email</strong><span>Buyers use this address when they tap “Message seller.”</span></div>
+        <label><span class="sr-only">Seller signup email</span><input id="sellerContactEmailInput" type="email" readonly aria-readonly="true" placeholder="Your signup email"></label>
       </section>
       <div class="account-stats"><div><strong id="listingCount">0</strong><span>Items still listed</span></div><div><strong>✓</strong><span>Verified account</span></div></div>
       <div class="profile-location-card">
@@ -286,11 +286,6 @@
         <label class="profile-location-input"><span class="sr-only">Seller location</span><input id="sellerLocationInput" maxlength="100" placeholder="e.g. Macon, GA"><button class="button button-small" id="saveSellerLocation" type="button">Save</button></label>
         <a id="profileDirectionsLink" class="directions-link" href="#" target="_blank" rel="noopener" hidden>Open location in Maps</a>
       </div>
-      <section class="seller-messages-card" aria-labelledby="sellerMessagesTitle">
-        <div class="seller-messages-head"><div><strong id="sellerMessagesTitle">Buyer messages</strong><span id="messageAccessText">Checking messages…</span></div><span class="message-notification-pin" id="profileMessageBadge" hidden>0</span></div>
-        <button class="button button-small" id="openMessagesButton" type="button">Open messages</button>
-        <div class="seller-message-list" id="sellerMessageList" hidden></div>
-      </section>
       <div class="membership-status-card"><div><strong>Lifetime membership</strong><span id="membershipStatus">Not active</span></div><button class="button button-small membership-checkout-button" id="accountMembershipButton" type="button">Pay $9.99</button></div>
       <div class="payout-card"><div><strong>Seller payouts</strong><span id="payoutStatus">Membership required</span></div><button class="button button-small" id="connectStripeButton">Unlock payouts</button></div>
       <a class="button admin-access-button" id="adminAccessButton" href="/admin.html" hidden>Open administration</a>
@@ -298,16 +293,6 @@
       <button class="button button-secondary" id="changeMemberPassword" type="button">Change password</button>
       <button class="button button-secondary" id="signOutButton">Sign out</button>
     </div>
-  </dialog>
-  <dialog id="messageSellerDialog">
-    <form id="messageSellerForm">
-      <button class="dialog-close" type="button" data-close-message-seller aria-label="Close">×</button>
-      <p class="eyebrow">Contact the seller</p><h2 id="messageSellerTitle">Ask about this item</h2>
-      <input name="listingId" type="hidden"><input name="sellerId" type="hidden">
-      <label>Your message<textarea name="message" required rows="5" minlength="2" maxlength="1000" placeholder="Is this item still available?"></textarea></label>
-      <p class="form-note">Your Flipora account email will be shared with the seller so they can reply.</p>
-      <button class="button" type="submit">Send message</button>
-    </form>
   </dialog>
   <dialog id="adDialog">
     <form id="adForm">
@@ -327,9 +312,9 @@
   <script src="config.js?v=20260823-1515" defer></script>
   <script src="script.js?v=20260830-android-video-upload-3" defer></script>
   <script src="stripe-connect-ui.js?v=20260829-onboarding-open-1" defer></script>
-  <script src="messaging.js?v=20260831-direct-seller-email-1" defer></script>
+  <script src="messaging.js?v=20260831-signup-email-2" defer></script>
   <script src="profile-avatar.js?v=20260830-photo-only-1" defer></script>
-  <script src="seller-contact-email.js?v=20260831-direct-email-1" defer></script>
+  <script src="seller-contact-email.js?v=20260831-signup-email-2" defer></script>
   <script src="enhancements.js?v=20260824-listing-gallery-1" defer></script>
   <script src="cover-photos.js?v=20260831-sold-vehicles-grid-2" defer></script>
   <script src="listing-image-fixes.js?v=2-photo-viewer" defer></script>
