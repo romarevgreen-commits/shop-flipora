@@ -276,6 +276,10 @@
         <div><strong>Profile picture</strong><span>Add a clear photo so buyers recognize your seller profile.</span><button class="button button-small" id="chooseProfilePhoto" type="button">Add or change photo</button></div>
         <input id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
       </section>
+      <section class="seller-contact-email-card">
+        <div><strong>Seller contact email</strong><span>Buyers will open this email directly when they tap “Message seller.”</span></div>
+        <label><span class="sr-only">Seller contact email</span><input id="sellerContactEmailInput" type="email" maxlength="254" autocomplete="email" placeholder="seller@example.com"><button class="button button-small" id="saveSellerContactEmail" type="button">Save email</button></label>
+      </section>
       <div class="account-stats"><div><strong id="listingCount">0</strong><span>Items still listed</span></div><div><strong>✓</strong><span>Verified account</span></div></div>
       <div class="profile-location-card">
         <div><strong>Seller location</strong><span>Add a city, ZIP code, or safe public meetup location.</span></div>
@@ -323,8 +327,9 @@
   <script src="config.js?v=20260823-1515" defer></script>
   <script src="script.js?v=20260830-android-video-upload-3" defer></script>
   <script src="stripe-connect-ui.js?v=20260829-onboarding-open-1" defer></script>
-  <script src="messaging.js?v=20260826-membership-sync-1" defer></script>
+  <script src="messaging.js?v=20260831-direct-seller-email-1" defer></script>
   <script src="profile-avatar.js?v=20260830-photo-only-1" defer></script>
+  <script src="seller-contact-email.js?v=20260831-direct-email-1" defer></script>
   <script src="enhancements.js?v=20260824-listing-gallery-1" defer></script>
   <script src="cover-photos.js?v=20260831-sold-vehicles-grid-2" defer></script>
   <script src="listing-image-fixes.js?v=2-photo-viewer" defer></script>
