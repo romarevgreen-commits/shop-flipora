@@ -1,4 +1,4 @@
--- Seller profile introduction videos (maximum 15 seconds in the UI).
+-- Seller profile introduction videos (maximum 30 seconds in the UI).
 
 alter table public.profiles
   add column if not exists profile_video_url text;

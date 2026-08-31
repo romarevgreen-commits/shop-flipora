@@ -130,7 +130,7 @@
       videoWrap.innerHTML = `
         <h3>Meet the seller</h3>
         <video class="seller-profile-video" src="${safe(profile.profile_video_url)}" controls playsinline preload="metadata" aria-label="Seller introduction video"></video>
-        <p class="seller-profile-video-note">Seller introduction video · up to 15 seconds</p>
+        <p class="seller-profile-video-note">Seller introduction video · up to 30 seconds</p>
       `;
     } else {
       videoWrap.hidden = true;
