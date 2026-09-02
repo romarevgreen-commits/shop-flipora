@@ -1,0 +1,2 @@
+.listing-safety-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;padding-top:12px;border-top:1px solid var(--line)}
+.listing-safety-actions[hidden]{display:none}.danger-text{color:#a51d2d}.content-rules-consent{display:flex!important;align-items:flex-start;gap:10px;font-size:.78rem;line-height:1.45}.content-rules-consent input{width:auto!important;margin-top:3px}.play-safe-notice{padding:12px 14px;border:1px solid #ded8ff;border-radius:12px;background:#f7f5ff;color:#4b4266;font-size:.78rem;line-height:1.45}.play-safe-hidden{display:none!important}
