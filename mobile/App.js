@@ -12,7 +12,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { WebView } from 'react-native-webview';
 
-const FLIPORA_URL = 'https://shop-flipora.netlify.app';
+const FLIPORA_URL = 'https://shop-flipora.netlify.app/?platform=android';
 
 export default function App() {
   const webViewRef = useRef(null);
