@@ -18,7 +18,7 @@
       }
     },
     "android": {
-      "package": "com.flipora.marketplace",
+      "package": "shop.flipora.app",
       "adaptiveIcon": {
         "backgroundColor": "#5b35f5"
       },
