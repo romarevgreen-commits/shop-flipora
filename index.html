@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css?v=20260830-android-video-status-2">
   <link rel="stylesheet" href="opportunities.css?v=20260824-photo-cards-1">
   <link rel="stylesheet" href="advertising.css?v=20260824-package-details-1">
+  <link rel="stylesheet" href="play-safety.css?v=20260902-1">
 </head>
 <body>
   <header class="site-header">
@@ -218,6 +219,7 @@
         <div class="video-preview" id="videoPreview" aria-live="polite"><p>Add one short video so buyers can see the item in action.</p></div>
       </fieldset>
       <label>Description<textarea name="description" rows="3" maxlength="180" placeholder="Condition, size, pickup details..."></textarea></label>
+      <label class="content-rules-consent"><input name="contentRules" type="checkbox" required> I agree to the <a href="/terms.html" target="_blank" rel="noopener">Terms and content rules</a>, including the prohibition on illegal, abusive, sexual, hateful, fraudulent, or dangerous content.</label>
       <p class="form-note">Listings are connected to your Flipora account. Flipora deducts a 12% marketplace fee from completed item sales; buyers are not charged an additional Flipora fee. Never share payment or private contact details in a public description.</p>
       <button class="button" value="default" type="submit">Publish listing</button>
     </form>
@@ -239,9 +241,27 @@
         <a class="seller-profile-link" id="detailSellerProfileLink" href="/reviews.html" hidden>View seller profile & reviews</a>
         <button class="buy-button" id="detailBuyButton" type="button">Buy securely</button>
         <button class="button button-secondary message-seller-button" id="detailMessageSellerButton" type="button" hidden>Message seller</button>
+        <div class="listing-safety-actions" id="listingSafetyActions" hidden>
+          <button class="text-button" id="reportListingButton" type="button">Report listing or seller</button>
+          <button class="text-button danger-text" id="blockSellerButton" type="button">Block seller</button>
+        </div>
         <span class="sample-note" id="detailSampleNote" hidden>Sample listing · Navigation example</span>
       </div>
     </article>
+  </dialog>
+  <dialog id="reportDialog">
+    <form id="reportForm" name="safety-report" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="safety-report">
+      <input type="hidden" name="listingId"><input type="hidden" name="reportedUserId"><input type="hidden" name="reporterEmail">
+      <p hidden><label>Do not fill this out<input name="bot-field"></label></p>
+      <button class="dialog-close" type="button" data-close-report aria-label="Close">×</button>
+      <p class="eyebrow">Safety report</p><h2>Report listing or seller</h2>
+      <p class="form-note">Reports are sent privately to Flipora for review. The seller will not see your identity.</p>
+      <label>Reason<select name="reason" required><option value="">Choose a reason</option><option>Fraud or scam</option><option>Illegal or prohibited item</option><option>Harassment or hate</option><option>Sexual or explicit content</option><option>Violence or dangerous content</option><option>Spam or misleading listing</option><option>Other policy violation</option></select></label>
+      <label>Details<textarea name="details" rows="4" maxlength="500" required placeholder="Tell us what happened"></textarea></label>
+      <p class="auth-message" id="reportMessage" aria-live="polite"></p>
+      <button class="button" type="submit">Send report</button>
+    </form>
   </dialog>
   <dialog id="authDialog">
     <form id="authForm">
@@ -319,6 +339,7 @@
   <script src="cover-photos.js?v=20260831-sold-vehicles-grid-2" defer></script>
   <script src="listing-image-fixes.js?v=2-photo-viewer" defer></script>
   <script src="advertising.js?v=20260830-membership-included-1" defer></script>
+  <script src="play-safety.js?v=20260902-1" defer></script>
   <script src="language-selector.js?v=20260824-2"></script>
   <script src="https://translate.google.com/translate_a/element.js?cb=fliporaTranslateInit" async></script>
 </body>
