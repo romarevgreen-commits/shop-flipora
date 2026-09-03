@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Administration | Macon Service Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="portfolio.css" />
+</head>
+<body class="portal-page">
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="./"><span class="brand-mark">M</span><span>Macon Service Connect Admin</span></a>
+    <div class="portal-actions">
+      <a class="btn btn-small btn-secondary" href="./">Website</a>
+      <a class="btn btn-small btn-secondary" href="business-account.html">Business login</a>
+      <button class="btn btn-small" id="logoutButton" hidden>Log out</button>
+    </div>
+  </div>
+</header>
+<main class="portal-main"><div class="container">
+  <section class="admin-login-shell" id="adminLoginShell">
+    <div class="admin-login-card">
+      <span class="eyebrow">SECURE ADMIN LOGIN</span><h1>Administration</h1>
+      <p class="muted">Sign in with the administrator email. If the password does not work, use the secure email-link option.</p>
+      <form id="adminPasswordForm" class="portal-form">
+        <label>Admin email<input id="adminEmail" type="email" autocomplete="username" required></label>
+        <label>Password<input id="adminPassword" type="password" autocomplete="current-password" required></label>
+        <button class="btn btn-full" type="submit">Log in to administration</button>
+      </form>
+      <div class="admin-login-divider"><span>or</span></div>
+      <form id="magicLinkForm" class="portal-form compact-login-form">
+        <label>Admin email<input id="magicEmail" type="email" autocomplete="email" required></label>
+        <button class="btn btn-full btn-secondary" type="submit">Email me a secure sign-in link</button>
+      </form>
+      <button class="text-button" id="resetPasswordButton" type="button">Forgot or need to change the admin password?</button>
+      <p id="adminLoginMessage" class="form-message" aria-live="polite"></p>
+    </div>
+  </section>
+  <section class="admin-login-shell" id="recoveryShell" hidden>
+    <div class="admin-login-card">
+      <span class="eyebrow">RESET ADMIN PASSWORD</span><h1>Choose a new password</h1>
+      <p class="muted">Set a new password after opening the secure recovery link sent to the administrator email.</p>
+      <form id="recoveryForm" class="portal-form">
+        <label>New password<input id="newPassword" type="password" minlength="8" autocomplete="new-password" required></label>
+        <label>Confirm new password<input id="confirmPassword" type="password" minlength="8" autocomplete="new-password" required></label>
+        <button class="btn btn-full" type="submit">Save new admin password</button>
+        <p id="recoveryMessage" class="form-message" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+  <section id="adminPortal" class="dashboard-wrap" hidden>
+    <div class="dashboard-head"><div><span class="eyebrow">ADMINISTRATION</span><h1>Customer leads & business accounts</h1><p class="muted">Approve providers, assign customer requests, review portfolio activity, and manage job status.</p></div><button class="btn btn-small btn-secondary" id="refreshButton">Refresh all</button></div>
+    <div id="accessMessage" class="empty-state" hidden></div>
+    <section class="admin-stats"><div><strong id="statNew">0</strong><span>New leads</span></div><div><strong id="statAssigned">0</strong><span>Assigned leads</span></div><div><strong id="statPending">0</strong><span>Pending businesses</span></div><div><strong id="statApproved">0</strong><span>Approved businesses</span></div></section>
+    <section class="dashboard-panel"><div class="panel-head"><div><h2>Customer job requests</h2><p>Assign each lead to one business. Only that business can view the customer's full contact and address information.</p></div></div><div id="adminLeadList" class="admin-list"></div></section>
+    <section class="dashboard-panel"><div class="panel-head"><div><h2>Business owners</h2><p>Approve, suspend, review plans, and see how many work photos each provider has posted.</p></div></div><div id="businessList" class="admin-list"></div></section>
+  </section>
+</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
+<script src="supabase-config.js"></script>
+<script src="admin-v2.js"></script>
+</body></html>
