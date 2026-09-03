@@ -1,0 +1,23 @@
+name: Macon temporary Netlify deploy
+
+on:
+  push:
+    branches:
+      - msc-netlify-deploy-temp
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Deploy Macon Service Connect
+        working-directory: macon-service-connect
+        shell: bash
+        run: |
+          PROXY_PATH="$(cat ../.netlify-proxy-temp)"
+          npx -y @netlify/mcp@latest --site-id cf84c9f2-976f-4810-94a3-7110d4dd9ab1 --proxy-path "$PROXY_PATH"
