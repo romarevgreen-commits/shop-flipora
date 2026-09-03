@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Business Owner Account | Macon Service Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="portal-page">
+  <header class="site-header"><div class="container nav-wrap"><a class="brand" href="./"><span class="brand-mark">M</span><span>Macon Service Connect</span></a><a class="btn btn-small btn-secondary" href="./">Back to website</a></div></header>
+  <main class="portal-main">
+    <div class="container auth-shell">
+      <section class="auth-intro">
+        <span class="eyebrow">BUSINESS OWNER PORTAL</span>
+        <h1>Get customer job leads in one secure dashboard.</h1>
+        <p>Business owners can create an account, submit their business profile for approval, then receive complete customer job information after an administrator assigns a lead.</p>
+        <ul class="check-list dark-checks"><li>Customer name and phone</li><li>Job address and ZIP code</li><li>Service requested and job description</li><li>Preferred date/time and access notes</li></ul>
+      </section>
+      <section class="auth-card">
+        <div class="auth-tabs"><button class="auth-tab active" id="showLogin" type="button">Log in</button><button class="auth-tab" id="showSignup" type="button">Create account</button></div>
+        <form id="loginForm" class="portal-form">
+          <h2>Business owner login</h2>
+          <label>Email<input id="loginEmail" type="email" autocomplete="email" required></label>
+          <label>Password<input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required></label>
+          <button class="btn btn-full" type="submit">Log in to dashboard</button>
+          <p class="form-message" id="loginMessage"></p>
+        </form>
+        <form id="signupForm" class="portal-form hidden-form">
+          <h2>Create your business account</h2>
+          <div class="field-row"><label>Business name<input id="businessName" required></label><label>Owner / contact name<input id="ownerName" required></label></div>
+          <div class="field-row"><label>Phone<input id="businessPhone" type="tel" required></label><label>Email<input id="signupEmail" type="email" autocomplete="email" required></label></div>
+          <div class="field-row"><label>Service category<select id="businessCategory" required><option value="">Choose one</option><option>Lawn Care</option><option>Junk Removal</option><option>House Cleaning</option><option>Mobile Detailing</option><option>Handyman</option><option>Moving Help</option><option>Pressure Washing</option><option>Other</option></select></label><label>Service area<input id="serviceArea" placeholder="Macon + 25 miles" required></label></div>
+          <label>Business description<textarea id="businessDescription" rows="3" placeholder="Services offered, experience, availability..."></textarea></label>
+          <div class="field-row"><label>Plan<select id="businessPlan"><option value="Starter">Starter — $29/month</option><option value="Featured">Featured — $79/month</option></select></label><label>Password<input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required></label></div>
+          <label class="checkbox"><input id="businessTerms" type="checkbox" required><span>I confirm the business information is accurate and I agree to be contacted about provider approval and customer leads.</span></label>
+          <button class="btn btn-full" type="submit">Create business account</button>
+          <p class="form-message" id="signupMessage"></p>
+        </form>
+      </section>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
+  <script src="supabase-config.js"></script>
+  <script>
+    const sb = window.mscSupabase;
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const showLogin = document.getElementById('showLogin');
+    const showSignup = document.getElementById('showSignup');
+    function setTab(tab){ const login = tab === 'login'; loginForm.classList.toggle('hidden-form', !login); signupForm.classList.toggle('hidden-form', login); showLogin.classList.toggle('active', login); showSignup.classList.toggle('active', !login); }
+    showLogin.onclick = () => setTab('login'); showSignup.onclick = () => setTab('signup');
+    const params = new URLSearchParams(location.search);
+    if (params.get('mode') === 'signup' || params.get('plan')) setTab('signup');
+    if (params.get('plan')) document.getElementById('businessPlan').value = params.get('plan').toLowerCase().includes('featured') ? 'Featured' : 'Starter';
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault(); const message = document.getElementById('loginMessage'); message.textContent = 'Signing in…';
+      const { error } = await sb.auth.signInWithPassword({ email: document.getElementById('loginEmail').value.trim(), password: document.getElementById('loginPassword').value });
+      if (error) { message.textContent = error.message; message.className = 'form-message error'; return; }
+      location.href = 'business-dashboard.html';
+    });
+    signupForm.addEventListener('submit', async (event) => {
+      event.preventDefault(); const message = document.getElementById('signupMessage'); const button = signupForm.querySelector('button[type="submit"]'); message.textContent = 'Creating your account…'; button.disabled = true; const email = document.getElementById('signupEmail').value.trim();
+      const { data, error } = await sb.auth.signUp({ email, password: document.getElementById('signupPassword').value, options: { data: { app_source: 'macon_service_connect', business_name: document.getElementById('businessName').value.trim(), owner_name: document.getElementById('ownerName').value.trim(), phone: document.getElementById('businessPhone').value.trim(), service_category: document.getElementById('businessCategory').value, service_area: document.getElementById('serviceArea').value.trim(), description: document.getElementById('businessDescription').value.trim(), plan: document.getElementById('businessPlan').value } } });
+      button.disabled = false;
+      if (error) { message.textContent = error.message; message.className = 'form-message error'; return; }
+      if (data.session) location.href = 'business-dashboard.html'; else { message.textContent = 'Account created. Check your email to confirm your address, then return here to log in.'; message.className = 'form-message success'; setTab('login'); document.getElementById('loginEmail').value = email; }
+    });
+    sb.auth.getSession().then(({data}) => { if (data.session) location.href = 'business-dashboard.html'; });
+  </script>
+</body>
+</html>
